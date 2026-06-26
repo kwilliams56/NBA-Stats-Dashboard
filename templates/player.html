@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ player.name if player else "Player Profile" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <nav>
+        <h2>NBA<span>Stats</span></h2>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/compare">Compare</a>
+            <a href="#">Teams</a>
+            <a href="#">Favorites</a>
+        </div>
+    </nav>
+
+    {% if player %}
+    <div class="profile-hero">
+        <img src="{{ player.image_url }}" class="profile-player-img">
+
+        {% if player.team_logo %}
+        <img src="{{ player.team_logo }}" class="profile-team-logo">
+        {% endif %}
+
+        <h1>{{ player.name }}</h1>
+        <p>{{ player.team_name }}</p>
+
+        <div class="stat-grid profile-stats">
+            <div>
+                <h3>{{ player.ppg }}</h3>
+                <p>PPG</p>
+            </div>
+            <div>
+                <h3>{{ player.rpg }}</h3>
+                <p>RPG</p>
+            </div>
+            <div>
+                <h3>{{ player.apg }}</h3>
+                <p>APG</p>
+            </div>
+            <div>
+                <h3>{{ player.fg_pct }}%</h3>
+                <p>FG%</p>
+            </div>
+            <div>
+                <h3>{{ player.fg3_pct }}%</h3>
+                <p>3PT%</p>
+            </div>
+            <div>
+                <h3>{{ player.ft_pct }}%</h3>
+                <p>FT%</p>
+            </div>
+        </div>
+
+        <div class="career-totals">
+            <h3>Career Totals</h3>
+            <p>🏀 {{ "{:,}".format(player.career_points) }} Points</p>
+            <p>💪 {{ "{:,}".format(player.career_rebounds) }} Rebounds</p>
+            <p>🎯 {{ "{:,}".format(player.career_assists) }} Assists</p>
+        </div>
+        <div class="chart-box">
+            <h2>Career PPG Trend</h2>
+            <canvas id="profilePpgChart"></canvas>
+        </div>
+
+        <script>
+            const profileSeasons = {{ player.career_table | map(attribute = 'season') | list | tojson }};
+            const profilePpgData = {{ player.career_table | map(attribute = 'ppg') | list | tojson }};
+
+            const profileCtx = document.getElementById('profilePpgChart');
+
+            new Chart(profileCtx, {
+                type: 'line',
+                data: {
+                    labels: profileSeasons,
+                    datasets: [{
+                        label: 'PPG',
+                        data: profilePpgData,
+                        tension: 0.3
+                    }]
+                }
+            });
+        </script>
+        <div class="career-table">
+            <h2>Season-by-Season Stats</h2>
+
+            <table>
+                <tr>
+                    <th>Season</th>
+                    <th>Team</th>
+                    <th>GP</th>
+                    <th>PPG</th>
+                    <th>RPG</th>
+                    <th>APG</th>
+                </tr>
+
+                {% for row in player.career_table %}
+                <tr>
+                    <td>{{ row.season }}</td>
+                    <td>{{ row.team }}</td>
+                    <td>{{ row.games }}</td>
+                    <td>{{ row.ppg }}</td>
+                    <td>{{ row.rpg }}</td>
+                    <td>{{ row.apg }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+
+</body>
+
+</html>

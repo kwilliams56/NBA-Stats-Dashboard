@@ -49,6 +49,10 @@
         <div class="compare-results">
             <div class="compare-player-card">
                 <img src="{{ player1.image_url }}" class="player-image">
+                {% if player1.team_logo %}
+                <img src="{{ player1.team_logo }}" class="team-logo">
+                {% endif %}
+
                 <h2>{{ player1.name }}</h2>
                 <p class="team">{{ player1.team_name }}</p>
 
@@ -65,14 +69,42 @@
                         <h3>{{ player1.apg }}</h3>
                         <p>APG</p>
                     </div>
+                    <div>
+                        <h3>{{ player1.fg_pct }}%</h3>
+                        <p>FG%</p>
+                    </div>
+
+                    <div>
+                        <h3>{{ player1.fg3_pct }}%</h3>
+                        <p>3PT%</p>
+                    </div>
+
+                    <div>
+                        <h3>{{ player1.ft_pct }}%</h3>
+                        <p>FT%</p>
+                    </div>
+                </div>
+                <div class="career-totals">
+
+                    <h3>Career Totals</h3>
+
+                    <p>🏀 {{ "{:,}".format(player1.career_points) }} Points</p>
+
+                    <p>💪 {{ "{:,}".format(player1.career_rebounds) }} Rebounds</p>
+
+                    <p>🎯 {{ "{:,}".format(player1.career_assists) }} Assists</p>
+
                 </div>
             </div>
 
             <div class="compare-player-card">
                 <img src="{{ player2.image_url }}" class="player-image">
+                {% if player2.team_logo %}
+                <img src="{{ player2.team_logo }}" class="team-logo">
+                {% endif %}
+
                 <h2>{{ player2.name }}</h2>
                 <p class="team">{{ player2.team_name }}</p>
-
                 <div class="stat-grid">
                     <div>
                         <h3>{{ player2.ppg }}</h3>
@@ -86,6 +118,29 @@
                         <h3>{{ player2.apg }}</h3>
                         <p>APG</p>
                     </div>
+                    <div>
+                        <h3>{{ player2.fg_pct }}%</h3>
+                        <p>FG%</p>
+                    </div>
+                    <div>
+                        <h3>{{ player2.fg3_pct }}%</h3>
+                        <p>3PT%</p>
+                    </div>
+                    <div>
+                        <h3>{{ player2.ft_pct }}%</h3>
+                        <p>FT%</p>
+                    </div>
+                </div>
+                <div class="career-totals">
+
+                    <h3>Career Totals</h3>
+
+                    <p>🏀 {{ "{:,}".format(player2.career_points) }} Points</p>
+
+                    <p>💪 {{ "{:,}".format(player2.career_rebounds) }} Rebounds</p>
+
+                    <p>🎯 {{ "{:,}".format(player2.career_assists) }} Assists</p>
+
                 </div>
             </div>
         </div>
@@ -117,6 +172,21 @@
                     <td>APG</td>
                     <td class="{% if player1.apg > player2.apg %}winner{% endif %}">{{ player1.apg }}</td>
                     <td class="{% if player2.apg > player1.apg %}winner{% endif %}">{{ player2.apg }}</td>
+                </tr>
+                <tr>
+                    <td>FG%</td>
+                    <td class="{% if player1.fg_pct > player2.fg_pct %}winner{% endif %}">{{ player1.fg_pct }}%</td>
+                    <td class="{% if player2.fg_pct > player1.fg_pct %}winner{% endif %}">{{ player2.fg_pct }}%</td>
+                </tr>
+                <tr>
+                    <td>3PT%</td>
+                    <td class="{% if player1.fg3_pct > player2.fg3_pct %}winner{% endif %}">{{ player1.fg3_pct }}%</td>
+                    <td class="{% if player2.fg3_pct > player1.fg3_pct %}winner{% endif %}">{{ player2.fg3_pct }}%</td>
+                </tr>
+                <tr>
+                    <td>FT%</td>
+                    <td class="{% if player1.ft_pct > player2.ft_pct %}winner{% endif %}">{{ player1.ft_pct }}%</td>
+                    <td class="{% if player2.ft_pct > player1.ft_pct %}winner{% endif %}">{{ player2.ft_pct }}%</td>
                 </tr>
 
                 <tr>

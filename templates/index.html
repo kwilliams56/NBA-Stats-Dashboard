@@ -130,49 +130,62 @@
         </div>
         {% endif %}
         {% if stats %}
-        <div class="player-card">
-            <img src="{{ stats.image_url }}" class="player-image">
-            <h2>{{ player.full_name }}</h2>
-            <p class="team">{{ stats.team_name }}</p>
+        <a class="player-card-link" href="{{ url_for('player_profile', player_name=player.full_name) }}">
 
-            <p class="season">{{ stats.season }} Season</p>
+            <div class="player-card">
+                <img src="{{ stats.image_url }}" class="player-image">
+                <h2>{{ player.full_name }}</h2>
+                <p class="team">{{ stats.team_name }}</p>
+                {% if stats.team_logo %}
+                <img src="{{ stats.team_logo }}" class="team-logo">
+                {% endif %}
 
-            <div class="stat-grid">
-                <div>
-                    <h3>{{ stats.ppg }}</h3>
-                    <p>PPG</p>
+                <p class="season">{{ stats.season }} Season</p>
+
+                <div class="stat-grid">
+                    <div>
+                        <h3>{{ stats.ppg }}</h3>
+                        <p>PPG</p>
+                    </div>
+
+                    <div>
+                        <h3>{{ stats.rpg }}</h3>
+                        <p>RPG</p>
+                    </div>
+
+                    <div>
+                        <h3>{{ stats.apg }}</h3>
+                        <p>APG</p>
+                    </div>
+
+                    <div>
+                        <h3>{{ stats.games }}</h3>
+                        <p>Games</p>
+                    </div>
+                    <div>
+                        <h3>{{ stats.fg_pct }}%</h3>
+                        <p>FG%</p>
+                    </div>
+
+                    <div>
+                        <h3>{{ stats.fg3_pct }}%</h3>
+                        <p>3PT%</p>
+                    </div>
+                    <div>
+                        <h3>{{ stats.ft_pct }}%</h3>
+                        <p>FT%</p>
+                    </div>
+                    <div class="career-totals">
+                        <h3>Career Totals</h3>
+
+                        <p>🏀 {{ "{:,}".format(stats.career_points) }} Points</p>
+                        <p>💪 {{ "{:,}".format(stats.career_rebounds) }} Rebounds</p>
+                        <p>🎯 {{ "{:,}".format(stats.career_assists) }} Assists</p>
+                    </div>
                 </div>
 
-                <div>
-                    <h3>{{ stats.rpg }}</h3>
-                    <p>RPG</p>
-                </div>
-
-                <div>
-                    <h3>{{ stats.apg }}</h3>
-                    <p>APG</p>
-                </div>
-
-                <div>
-                    <h3>{{ stats.games }}</h3>
-                    <p>Games</p>
-                </div>
-                <div>
-                    <h3>{{ stats.fg_pct }}%</h3>
-                    <p>FG%</p>
-                </div>
-
-                <div>
-                    <h3>{{ stats.fg3_pct }}%</h3>
-                    <p>3PT%</p>
-                </div>
-                <div>
-                    <h3>{{ stats.ft_pct }}%</h3>
-                    <p>FT%</p>
-                </div>
             </div>
-
-        </div>
+        </a>
         {% endif %}
 
         {% if career_table %}
