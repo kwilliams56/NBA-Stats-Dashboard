@@ -59,12 +59,30 @@
             </div>
         </div>
 
-        <div class="career-totals">
-            <h3>Career Totals</h3>
-            <p>🏀 {{ "{:,}".format(player.career_points) }} Points</p>
-            <p>💪 {{ "{:,}".format(player.career_rebounds) }} Rebounds</p>
-            <p>🎯 {{ "{:,}".format(player.career_assists) }} Assists</p>
-        </div>
+        <section class="career-total-cards">
+            <div class="section-header">
+                <h2>Career Totals</h2>
+                <p>All-time production across regular season games</p>
+            </div>
+
+            <div class="career-total-grid">
+                <div class="career-total-card">
+                    <span>PTS</span>
+                    <h3>{{ "{:,}".format(player.career_points) }}</h3>
+                    <p>Career Points</p>
+                </div>
+                <div class="career-total-card">
+                    <span>REB</span>
+                    <h3>{{ "{:,}".format(player.career_rebounds) }}</h3>
+                    <p>Career Rebounds</p>
+                </div>
+                <div class="career-total-card">
+                    <span>AST</span>
+                    <h3>{{ "{:,}".format(player.career_assists) }}</h3>
+                    <p>Career Assists</p>
+                </div>
+            </div>
+        </section>
         {% if similar_players %}
         <section class="similar-players">
             <div class="section-header">
