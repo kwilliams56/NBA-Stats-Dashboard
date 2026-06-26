@@ -97,9 +97,17 @@
             <canvas id="profilePpgChart"></canvas>
         </div>
 
+        <div class="chart-box">
+            <h2>Shooting Percentages by Season</h2>
+            <canvas id="profileShootingChart"></canvas>
+        </div>
+
         <script>
             const profileSeasons = {{ player.career_table | map(attribute = 'season') | list | tojson }};
             const profilePpgData = {{ player.career_table | map(attribute = 'ppg') | list | tojson }};
+            const profileFgData = {{ player.career_table | map(attribute = 'fg_pct') | list | tojson }};
+            const profileFg3Data = {{ player.career_table | map(attribute = 'fg3_pct') | list | tojson }};
+            const profileFtData = {{ player.career_table | map(attribute = 'ft_pct') | list | tojson }};
 
             const profileCtx = document.getElementById('profilePpgChart');
 
@@ -160,7 +168,104 @@
                     }
                 }
             });
+            const shootingCtx = document.getElementById('profileShootingChart');
+
+            new Chart(shootingCtx, {
+                type: 'line',
+                data: {
+                    labels: profileSeasons,
+                    datasets: [
+                        {
+                            label: 'FG%',
+                            data: profileFgData,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#3b82f6',
+                            pointBorderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            tension: 0.35
+                        },
+                        {
+                            label: '3PT%',
+                            data: profileFg3Data,
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.12)',
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#00ff88',
+                            pointBorderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            tension: 0.35
+                        },
+                        {
+                            label: 'FT%',
+                            data: profileFtData,
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#f59e0b',
+                            pointBorderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            tension: 0.35
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#d1d5db'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0b0f17',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            titleColor: '#ffffff',
+                            bodyColor: '#d1d5db',
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#bbbbbb'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.08)'
+                            }
+                        },
+                        y: {
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: {
+                                color: '#bbbbbb',
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.08)'
+                            }
+                        }
+                    }
+                }
+            });
         </script>
+
         <div class="career-table">
             <h2>Season-by-Season Stats</h2>
 

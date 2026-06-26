@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Add FG%, 3PT%, FT% chart
+- [ ] Add career totals cards
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -22,7 +22,7 @@
 - [x] Season-by-season table
 - [x] Similar Players section
 - [x] Better chart styling
-- [ ] Add FG%, 3PT%, FT% chart
+- [x] Add FG%, 3PT%, FT% chart
 - [ ] Add career totals cards
 
 ## Compare Page

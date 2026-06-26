@@ -153,6 +153,9 @@ def get_player_stats(player_name):
                 "ppg": round(row["PTS"] / gp, 1),
                 "rpg": round(row["REB"] / gp, 1),
                 "apg": round(row["AST"] / gp, 1),
+                "fg_pct": round(row["FG_PCT"] * 100, 1),
+                "fg3_pct": round(row["FG3_PCT"] * 100, 1),
+                "ft_pct": round(row["FT_PCT"] * 100, 1),
             }
         )
 
