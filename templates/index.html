@@ -23,18 +23,29 @@
         and explore NBA analytics.
     </p>
 
-    <form>
+    <form method="POST">
+    <input
+        type="text"
+        name="player_name"
+        placeholder="Enter player name..."
+        required
+    >
 
-        <input
-            type="text"
-            placeholder="Enter player name..."
-        >
+    <button type="submit">
+        Search
+    </button>
+</form>
+{% if player %}
+    <div class="player-card">
+        <h2>{{ player.full_name }}</h2>
+        <p><strong>Player ID:</strong> {{ player.id }}</p>
+        <p><strong>Active:</strong> {{ player.is_active }}</p>
+    </div>
+{% endif %}
 
-        <button>
-            Search
-        </button>
-
-    </form>
+{% if error %}
+    <p class="error">{{ error }}</p>
+{% endif %}
 
 </div>
 

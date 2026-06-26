@@ -69,3 +69,16 @@ button:hover{
     background:#004ecc;
 
 }
+.player-card {
+    background: #1d1d1d;
+    width: 400px;
+    margin: 50px auto;
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.error {
+    color: #ff4d4d;
+    margin-top: 30px;
+    font-size: 20px;
+}
