@@ -918,3 +918,229 @@ th {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* HOMEPAGE RESPONSIVE */
+
+@media (max-width: 900px) {
+    nav {
+        padding: 18px 28px;
+        align-items: flex-start;
+        gap: 14px;
+        flex-direction: column;
+    }
+
+    .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 18px;
+    }
+
+    .nav-links a {
+        margin-left: 0;
+        font-size: 16px;
+    }
+
+    .hero {
+        padding: 60px 16px 32px;
+    }
+
+    .hero h1 {
+        font-size: 48px;
+    }
+
+    .hero p,
+    .hero-subtitle {
+        font-size: 19px;
+    }
+
+    .hero-tags {
+        flex-wrap: wrap;
+    }
+
+    .hero form {
+        width: 640px;
+        max-width: 100%;
+        margin: 30px auto 0;
+        display: flex;
+        gap: 12px;
+    }
+
+    .hero form input {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .hero form button {
+        margin-left: 0;
+        white-space: nowrap;
+    }
+
+    .trending-grid,
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .section-header {
+        align-items: flex-start;
+        gap: 8px;
+        flex-direction: column;
+    }
+
+    .player-card {
+        width: 100%;
+        max-width: 560px;
+    }
+
+    .career-table,
+    .chart-box {
+        width: 100%;
+        max-width: 90%;
+    }
+}
+
+@media (max-width: 620px) {
+    nav {
+        padding: 16px 20px;
+    }
+
+    nav h2 {
+        font-size: 24px;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .nav-links a {
+        font-size: 15px;
+    }
+
+    .hero {
+        padding: 42px 14px 28px;
+    }
+
+    .hero-badge {
+        font-size: 14px;
+    }
+
+    .hero h1 {
+        font-size: 38px;
+    }
+
+    .hero p,
+    .hero-subtitle {
+        font-size: 17px;
+    }
+
+    .hero-tags {
+        gap: 10px;
+    }
+
+    .hero-tags span {
+        font-size: 14px;
+        padding: 9px 12px;
+    }
+
+    .hero form {
+        flex-direction: column;
+    }
+
+    input,
+    .hero form input {
+        width: 100%;
+        height: 54px;
+        font-size: 17px;
+    }
+
+    button,
+    .hero form button {
+        width: 100%;
+        margin-left: 0;
+        padding: 15px 22px;
+        font-size: 17px;
+    }
+
+    .compare-card {
+        max-width: 100%;
+        margin: 28px auto 48px;
+        padding: 18px 20px;
+        font-size: 20px;
+    }
+
+    .trending,
+    .features,
+    .results-box,
+    .player-card,
+    .career-table,
+    .chart-box {
+        max-width: 100%;
+    }
+
+    .trending,
+    .features {
+        padding: 22px;
+    }
+
+    .trending-grid,
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-card {
+        padding: 22px;
+    }
+
+    .results-box {
+        width: 100%;
+    }
+
+    .player-card {
+        padding: 24px;
+        margin: 36px auto;
+    }
+
+    .player-card h2 {
+        font-size: 30px;
+    }
+
+    .player-image {
+        width: 150px;
+        height: 150px;
+    }
+
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .career-totals {
+        grid-column: 1 / -1;
+    }
+
+    .career-table,
+    .chart-box {
+        padding: 20px;
+        overflow-x: auto;
+    }
+
+    th,
+    td {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 420px) {
+    .hero h1 {
+        font-size: 32px;
+    }
+
+    .compare-card {
+        font-size: 18px;
+    }
+
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+}
