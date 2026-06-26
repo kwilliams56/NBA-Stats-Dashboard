@@ -5,53 +5,117 @@
 }
 
 body {
-    background: #121212;
+    background: #0b0f17;
     color: white;
     font-family: Arial, Helvetica, sans-serif;
 }
 
+/* NAVBAR */
+
 nav {
-    background: #1d1d1d;
-    padding: 20px 40px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(16, 20, 28, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #2d3748;
+    padding: 20px 60px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+nav h2 {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+nav span {
+    color: #3b82f6;
+}
+
 .nav-links a {
-    color: white;
+    color: #d1d5db;
     text-decoration: none;
-    margin-left: 25px;
-    font-size: 18px;
+    margin-left: 30px;
+    font-size: 17px;
+    font-weight: 600;
+    transition: 0.3s;
 }
 
 .nav-links a:hover {
-    color: #0066ff;
+    color: white;
 }
 
+/* HERO */
+
 .hero {
-    margin-top: 75px;
     text-align: center;
+    padding: 90px 20px 40px;
+}
+
+.hero-badge {
+    display: inline-block;
+    margin-bottom: 18px;
+    padding: 10px 18px;
+    border: 1px solid #3b82f6;
+    border-radius: 999px;
+    color: #66a3ff;
+    background: rgba(0, 102, 255, 0.1);
+    font-size: 15px;
+    font-weight: 600;
 }
 
 .hero h1 {
-    font-size: 55px;
-    margin-bottom: 20px;
+    max-width: 900px;
+    margin: 0 auto 20px;
+    font-size: 64px;
+    line-height: 1.1;
 }
 
-.hero p {
+.hero p,
+.hero-subtitle {
+    max-width: 700px;
+    margin: 0 auto 25px;
     font-size: 22px;
     color: #bbbbbb;
-    margin-bottom: 40px;
+}
+
+.hero-tags {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 35px;
+}
+
+.hero-tags span {
+    background: #111827;
+    border: 1px solid #333;
+    color: #bbbbbb;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 15px;
+}
+
+/* FORMS */
+
+.hero form {
+    margin-top: 35px;
 }
 
 input {
     width: 430px;
     height: 58px;
     padding: 0 20px;
-    border: none;
+    border: 1px solid #333;
     border-radius: 12px;
     font-size: 20px;
+    background: #111827;
+    color: white;
+}
+
+input::placeholder {
+    color: #777;
 }
 
 button {
@@ -63,11 +127,14 @@ button {
     border-radius: 12px;
     cursor: pointer;
     font-size: 20px;
+    transition: 0.3s;
 }
 
 button:hover {
     background: #004ecc;
 }
+
+/* COMPARE CTA */
 
 .compare-card {
     width: 520px;
@@ -94,10 +161,111 @@ button:hover {
     box-shadow: 0 0 30px rgba(0, 102, 255, 0.6);
 }
 
+/* TRENDING */
+
+.trending,
+.features,
+.career-table,
+.chart-box,
+.comparison-table {
+    background: #111827;
+    border: 1px solid #333;
+    border-radius: 18px;
+}
+
+.trending {
+    width: 900px;
+    max-width: 90%;
+    margin: 0 auto 35px;
+    padding: 30px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header p {
+    color: #bbbbbb;
+}
+
+.trending-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.trending-grid form {
+    margin: 0;
+}
+
+.trending-card {
+    width: 100%;
+    margin: 0;
+    background: #0b0f17;
+    border: 1px solid #333;
+    font-size: 16px;
+}
+
+.trending-card:hover {
+    border-color: #0066ff;
+}
+
+/* FEATURES */
+
+.features {
+    width: 900px;
+    max-width: 90%;
+    margin: 20px auto 70px;
+    padding: 35px;
+}
+
+.features h2 {
+    margin-bottom: 30px;
+    color: #3b82f6;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.feature-card {
+    background: #0b0f17;
+    padding: 25px;
+    border-radius: 14px;
+    border: 1px solid #333;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    border: 1px solid #0066ff;
+    box-shadow: 0 0 25px rgba(0, 102, 255, 0.35);
+}
+
+.feature-card span {
+    font-size: 35px;
+}
+
+.feature-card h3 {
+    margin: 15px 0 10px;
+}
+
+.feature-card p {
+    color: #bbbbbb;
+}
+
+/* SEARCH RESULTS */
+
 .results-box {
     width: 400px;
     margin: 30px auto;
-    background: #1d1d1d;
+    background: #111827;
     padding: 20px;
     border-radius: 12px;
 }
@@ -105,19 +273,26 @@ button:hover {
 .result-button {
     width: 100%;
     margin: 8px 0;
-    background: #2a2a2a;
+    background: #0b0f17;
 }
 
 .result-button:hover {
     background: #0066ff;
 }
 
-.player-card {
-    background: #1d1d1d;
-    width: 520px;
-    margin: 50px auto;
+/* PLAYER CARD */
+
+.player-card,
+.compare-player-card {
+    background: #111827;
     padding: 35px;
     border-radius: 18px;
+    border: 1px solid #333;
+}
+
+.player-card {
+    width: 520px;
+    margin: 50px auto;
 }
 
 .player-image {
@@ -148,7 +323,7 @@ button:hover {
 }
 
 .stat-grid div {
-    background: #2a2a2a;
+    background: #0b0f17;
     padding: 20px;
     border-radius: 12px;
 }
@@ -158,17 +333,18 @@ button:hover {
     margin-bottom: 5px;
 }
 
+/* TABLES AND CHARTS */
+
 .career-table,
 .chart-box {
     width: 800px;
     margin: 40px auto;
-    background: #1d1d1d;
     padding: 25px;
-    border-radius: 15px;
 }
 
 .career-table h2,
-.chart-box h2 {
+.chart-box h2,
+.comparison-table h2 {
     margin-bottom: 20px;
 }
 
@@ -187,67 +363,12 @@ th {
     color: #bbbbbb;
 }
 
-.features {
-    width: 900px;
-    max-width: 90%;
-    margin: 20px auto 70px;
-    background: #111827;
-    padding: 35px;
-    border-radius: 18px;
-    border: 1px solid #333;
+.winner {
+    color: #00ff88;
+    font-weight: bold;
 }
 
-.features h2 {
-    margin-bottom: 30px;
-    color: #0066ff;
-}
-
-.feature-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-}
-
-.feature-card {
-    background: #1d1d1d;
-    padding: 25px;
-    border-radius: 14px;
-    border: 1px solid #333;
-    transition: 0.3s;
-    cursor: pointer;
-}
-
-.feature-card:hover {
-    transform: translateY(-8px);
-    border: 1px solid #0066ff;
-    box-shadow: 0 0 25px rgba(0, 102, 255, 0.35);
-}
-
-.feature-card span {
-    font-size: 35px;
-}
-
-.feature-card h3 {
-    margin: 15px 0 10px;
-}
-
-.feature-card p {
-    color: #bbbbbb;
-}
-
-.error {
-    color: #ff4d4d;
-    margin-top: 30px;
-    font-size: 20px;
-}
-
-.hero form {
-    margin-top: 40px;
-}
-
-.hero form input {
-    margin: 10px 0;
-}
+/* COMPARE PAGE */
 
 .compare-results {
     width: 1000px;
@@ -258,94 +379,17 @@ th {
     gap: 30px;
 }
 
-.compare-player-card {
-    background: #1d1d1d;
-    padding: 35px;
-    border-radius: 18px;
-}
-
 .comparison-table {
     width: 850px;
     max-width: 90%;
     margin: 40px auto 80px;
-    background: #1d1d1d;
     padding: 30px;
-    border-radius: 18px;
 }
 
-.comparison-table h2 {
-    margin-bottom: 25px;
-}
+/* ERRORS */
 
-.winner {
-    color: #00ff88;
-    font-weight: bold;
-}
-
-.hero-subtitle {
-    max-width: 700px;
-    margin: 0 auto 25px;
-}
-
-.hero-tags {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 35px;
-}
-
-.hero-tags span {
-    background: #1d1d1d;
-    border: 1px solid #333;
-    color: #bbbbbb;
-    padding: 10px 16px;
-    border-radius: 999px;
-    font-size: 15px;
-}
-
-.trending {
-    width: 900px;
-    max-width: 90%;
-    margin: 0 auto 35px;
-    background: #1d1d1d;
-    padding: 30px;
-    border-radius: 18px;
-    border: 1px solid #333;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.section-header h2 {
-    color: white;
-}
-
-.section-header p {
-    color: #bbbbbb;
-}
-
-.trending-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-}
-
-.trending-grid form {
-    margin: 0;
-}
-
-.trending-card {
-    width: 100%;
-    margin: 0;
-    background: #111827;
-    border: 1px solid #333;
-    font-size: 16px;
-}
-
-.trending-card:hover {
-    border-color: #0066ff;
+.error {
+    color: #ff4d4d;
+    margin-top: 30px;
+    font-size: 20px;
 }
