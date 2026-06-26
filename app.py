@@ -351,6 +351,36 @@ def compare():
     )
 
 
+@app.route("/teams")
+def teams():
+    team_list = [
+        {
+            "abbr": abbr,
+            "name": name,
+            "logo": team_logos.get(abbr),
+        }
+        for abbr, name in team_names.items()
+    ]
+
+    return render_template("teams.html", teams=team_list)
+
+
+@app.route("/team/<team_abbr>")
+def team_profile(team_abbr):
+    team_abbr = team_abbr.upper()
+
+    if team_abbr not in team_names:
+        return render_template("team.html", team=None, error="Team not found.")
+
+    team = {
+        "abbr": team_abbr,
+        "name": team_names[team_abbr],
+        "logo": team_logos.get(team_abbr),
+    }
+
+    return render_template("team.html", team=team, error=None)
+
+
 @app.route("/player/<player_name>")
 def player_profile(player_name):
     player = get_player_stats(player_name)

@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [x] Build Similar Players section on player profile pages
+- [ ] Add league leaders
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -20,7 +20,7 @@
 - [x] Career totals
 - [x] PPG chart
 - [x] Season-by-season table
-- [ ] Similar Players section
+- [x] Similar Players section
 - [ ] Better chart styling
 - [ ] Add FG%, 3PT%, FT% chart
 - [ ] Add career totals cards
@@ -36,8 +36,8 @@
 - [ ] Better compare page layout
 
 ## Team Features
-- [ ] Team pages
-- [ ] Team logos page
+- [x] Team pages
+- [x] Team logos page
 - [ ] Team stats
 - [ ] Team roster
 
