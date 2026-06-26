@@ -294,6 +294,29 @@
 
     </div>
 
+    <footer class="site-footer">
+        <div class="footer-brand">
+            <h2>NBA<span>Stats</span></h2>
+            <p>Player analytics, team pages, leaderboards, charts, and comparison tools built for modern NBA fans.</p>
+        </div>
+
+        <div class="footer-links">
+            <h3>Explore</h3>
+            <a href="/">Home</a>
+            <a href="/compare">Compare</a>
+            <a href="{{ url_for('teams') }}">Teams</a>
+            <a href="{{ url_for('league_leaders') }}">Leaders</a>
+        </div>
+
+        <div class="footer-tech">
+            <h3>Built With</h3>
+            <p>Flask</p>
+            <p>Python</p>
+            <p>NBA API</p>
+            <p>Chart.js</p>
+        </div>
+    </footer>
+
 </body>
 
 </html>

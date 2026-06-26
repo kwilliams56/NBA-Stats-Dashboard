@@ -4,14 +4,14 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Add footer
+- [ ] Radar chart
 
 ## Homepage
 - [x] ESPN-style hero section
 - [x] Trending Players
 - [x] Feature cards
 - [x] Make homepage mobile responsive
-- [ ] Add footer
+- [x] Add footer
 
 ## Player Profile Page
 - [x] Player image
