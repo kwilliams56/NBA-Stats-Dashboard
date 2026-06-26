@@ -7,6 +7,7 @@
     <title>Compare Players</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -146,6 +147,113 @@
             </div>
         </div>
         {% endif %}
+        {% if player1 and player2 %}
+        <div class="radar-chart-box">
+            <h2>Player Skill Radar</h2>
+            <canvas id="comparisonRadarChart"></canvas>
+        </div>
+
+        <script>
+            const radarLabels = ['PPG', 'RPG', 'APG', 'FG%', '3PT%', 'FT%'];
+            const player1RadarData = [
+                Math.min({{ player1.ppg }} / 35 * 100, 100),
+                Math.min({{ player1.rpg }} / 15 * 100, 100),
+                Math.min({{ player1.apg }} / 12 * 100, 100),
+                {{ player1.fg_pct }},
+                {{ player1.fg3_pct }},
+                {{ player1.ft_pct }}
+            ];
+            const player2RadarData = [
+                Math.min({{ player2.ppg }} / 35 * 100, 100),
+                Math.min({{ player2.rpg }} / 15 * 100, 100),
+                Math.min({{ player2.apg }} / 12 * 100, 100),
+                {{ player2.fg_pct }},
+                {{ player2.fg3_pct }},
+                {{ player2.ft_pct }}
+            ];
+
+            const radarCtx = document.getElementById('comparisonRadarChart');
+
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: radarLabels,
+                    datasets: [
+                        {
+                            label: '{{ player1.name }}',
+                            data: player1RadarData,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.22)',
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#3b82f6',
+                            pointBorderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: '{{ player2.name }}',
+                            data: player2RadarData,
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.18)',
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#00ff88',
+                            pointBorderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#d1d5db'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0b0f17',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            titleColor: '#ffffff',
+                            bodyColor: '#d1d5db',
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + Math.round(context.parsed.r) + '/100';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                color: '#bbbbbb',
+                                backdropColor: 'transparent',
+                                stepSize: 20
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.12)'
+                            },
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.12)'
+                            },
+                            pointLabels: {
+                                color: '#d1d5db',
+                                font: {
+                                    size: 14,
+                                    weight: '700'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+        {% endif %}
+
         {% if player1 and player2 %}
         <div class="comparison-table">
             <h2>Stat Comparison</h2>

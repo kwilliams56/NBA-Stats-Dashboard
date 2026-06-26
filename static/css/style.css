@@ -1205,3 +1205,36 @@ th {
         padding: 24px;
     }
 }
+
+
+.radar-chart-box {
+    width: 850px;
+    max-width: 90%;
+    min-height: 520px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #111827;
+    border: 1px solid #333;
+    border-radius: 18px;
+}
+
+.radar-chart-box h2 {
+    margin-bottom: 20px;
+}
+
+.radar-chart-box canvas {
+    width: 100% !important;
+    height: 420px !important;
+}
+
+@media (max-width: 620px) {
+    .radar-chart-box {
+        max-width: 100%;
+        min-height: 430px;
+        padding: 20px;
+    }
+
+    .radar-chart-box canvas {
+        height: 330px !important;
+    }
+}
