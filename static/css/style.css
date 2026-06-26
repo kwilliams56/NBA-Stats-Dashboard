@@ -843,3 +843,13 @@ th {
         font-size: 20px;
     }
 }
+
+
+.chart-box {
+    min-height: 420px;
+}
+
+.chart-box canvas {
+    width: 100% !important;
+    height: 320px !important;
+}

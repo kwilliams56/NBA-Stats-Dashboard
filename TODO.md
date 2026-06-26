@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Improve charts with better Chart.js styling
+- [ ] Add FG%, 3PT%, FT% chart
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -21,7 +21,7 @@
 - [x] PPG chart
 - [x] Season-by-season table
 - [x] Similar Players section
-- [ ] Better chart styling
+- [x] Better chart styling
 - [ ] Add FG%, 3PT%, FT% chart
 - [ ] Add career totals cards
 

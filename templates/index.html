@@ -235,8 +235,54 @@
                     datasets: [{
                         label: 'PPG',
                         data: ppgData,
-                        tension: 0.3
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.18)',
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#3b82f6',
+                        pointBorderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
+                        fill: true,
+                        tension: 0.35
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#d1d5db'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0b0f17',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            titleColor: '#ffffff',
+                            bodyColor: '#d1d5db',
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#bbbbbb'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.08)'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#bbbbbb'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.08)'
+                            }
+                        }
+                    }
                 }
             });
         </script>
