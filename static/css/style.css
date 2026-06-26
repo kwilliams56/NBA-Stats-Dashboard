@@ -317,9 +317,7 @@ button:hover {
 }
 
 .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
+    grid-template-columns: repeat(3, 1fr);
 }
 
 .stat-grid div {

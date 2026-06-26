@@ -132,6 +132,9 @@ def home():
                         "ppg": round(latest_season["PTS"] / games, 1),
                         "rpg": round(latest_season["REB"] / games, 1),
                         "apg": round(latest_season["AST"] / games, 1),
+                        "fg_pct": round(latest_season["FG_PCT"] * 100, 1),
+                        "fg3_pct": round(latest_season["FG3_PCT"] * 100, 1),
+                        "ft_pct": round(latest_season["FT_PCT"] * 100, 1),
                         "image_url": f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png",
                     }
                     for _, row in df.iterrows():
