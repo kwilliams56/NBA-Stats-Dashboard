@@ -64,6 +64,33 @@
             <p>💪 {{ "{:,}".format(player.career_rebounds) }} Rebounds</p>
             <p>🎯 {{ "{:,}".format(player.career_assists) }} Assists</p>
         </div>
+        {% if similar_players %}
+        <section class="similar-players">
+            <div class="section-header">
+                <h2>Similar Players</h2>
+                <p>Stat-profile matches based on scoring, playmaking, rebounding, and shooting</p>
+            </div>
+
+            <div class="similar-player-grid">
+                {% for similar in similar_players %}
+                <a class="similar-player-card" href="{{ url_for('player_profile', player_name=similar.name) }}">
+                    <img src="{{ similar.image_url }}" alt="{{ similar.name }} headshot">
+                    <div>
+                        <h3>{{ similar.name }}</h3>
+                        <p>{{ similar.team_name }}</p>
+                    </div>
+                    <span>{{ similar.similarity_score|int }}% match</span>
+                    <div class="similar-tags">
+                        {% for tag in similar.similarity_tags %}
+                        <small>{{ tag }}</small>
+                        {% endfor %}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
         <div class="chart-box">
             <h2>Career PPG Trend</h2>
             <canvas id="profilePpgChart"></canvas>

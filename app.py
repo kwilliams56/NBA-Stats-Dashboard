@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from flask import Flask, render_template, request
 from nba_api.stats.static import players
 from nba_api.stats.endpoints import playercareerstats
@@ -70,6 +72,41 @@ team_logos = {
 }
 
 
+similar_player_pool = [
+    "Stephen Curry",
+    "Damian Lillard",
+    "Klay Thompson",
+    "Trae Young",
+    "Luka Doncic",
+    "LeBron James",
+    "Kevin Durant",
+    "Giannis Antetokounmpo",
+    "Jayson Tatum",
+    "Nikola Jokic",
+    "Joel Embiid",
+    "Anthony Davis",
+    "Victor Wembanyama",
+    "Shai Gilgeous-Alexander",
+    "Anthony Edwards",
+    "Devin Booker",
+    "Donovan Mitchell",
+    "Ja Morant",
+    "Jalen Brunson",
+    "Tyrese Haliburton",
+    "Paolo Banchero",
+    "Zion Williamson",
+    "Bam Adebayo",
+    "Karl-Anthony Towns",
+    "Domantas Sabonis",
+    "Jimmy Butler",
+    "Paul George",
+    "Kawhi Leonard",
+    "Jaylen Brown",
+    "LaMelo Ball",
+]
+
+
+@lru_cache(maxsize=128)
 def get_player_stats(player_name):
     all_players = players.get_players()
 
@@ -120,6 +157,7 @@ def get_player_stats(player_name):
         )
 
     return {
+        "id": player_id,
         "name": player_info["full_name"],
         "team_name": team_names.get(team_abbr, team_abbr),
         "team_logo": team_logos.get(team_abbr),
@@ -137,6 +175,65 @@ def get_player_stats(player_name):
         "career_table": career_table,
         "image_url": f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png",
     }
+
+
+def get_similarity_score(player, candidate):
+    stat_weights = {
+        "ppg": (30, 3.0),
+        "rpg": (12, 2.2),
+        "apg": (10, 2.2),
+        "fg_pct": (20, 1.0),
+        "fg3_pct": (20, 1.0),
+        "ft_pct": (20, 0.8),
+        "career_points": (30000, 0.5),
+        "career_rebounds": (12000, 0.4),
+        "career_assists": (12000, 0.4),
+    }
+
+    score = 0
+
+    for stat, (scale, weight) in stat_weights.items():
+        difference = abs(player[stat] - candidate[stat]) / scale
+        score += difference * weight
+
+    return score
+
+
+def get_similarity_tags(player, candidate):
+    differences = [
+        ("Scoring", abs(player["ppg"] - candidate["ppg"])),
+        ("Rebounding", abs(player["rpg"] - candidate["rpg"])),
+        ("Playmaking", abs(player["apg"] - candidate["apg"])),
+        ("Shooting", abs(player["fg3_pct"] - candidate["fg3_pct"])),
+    ]
+
+    return [label for label, _ in sorted(differences, key=lambda item: item[1])[:2]]
+
+
+def get_similar_players(player, limit=4):
+    matches = []
+
+    for candidate_name in similar_player_pool:
+        if candidate_name.lower() == player["name"].lower():
+            continue
+
+        try:
+            candidate = get_player_stats(candidate_name)
+        except Exception:
+            continue
+
+        if not candidate:
+            continue
+
+        score = get_similarity_score(player, candidate)
+        candidate = candidate.copy()
+        candidate["similarity_score"] = max(0, round(100 - (score * 12), 0))
+        candidate["similarity_tags"] = get_similarity_tags(player, candidate)
+        matches.append(candidate)
+
+    return sorted(matches, key=lambda match: match["similarity_score"], reverse=True)[
+        :limit
+    ]
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -261,7 +358,11 @@ def player_profile(player_name):
     if not player:
         return render_template("player.html", player=None, error="Player not found.")
 
-    return render_template("player.html", player=player, error=None)
+    similar_players = get_similar_players(player)
+
+    return render_template(
+        "player.html", player=player, similar_players=similar_players, error=None
+    )
 
 
 if __name__ == "__main__":

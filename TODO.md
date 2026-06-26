@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Build Similar Players section on player profile pages
+- [x] Build Similar Players section on player profile pages
 
 ## Homepage
 - [x] ESPN-style hero section
