@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Teams</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <nav>
+        <h2>NBA<span>Stats</span></h2>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/compare">Compare</a>
+            <a href="{{ url_for('teams') }}">Teams</a>
+            <a href="{{ url_for('league_leaders') }}">Leaders</a>
+            <a href="#">Favorites</a>
+        </div>
+    </nav>
+
+    <main class="teams-page">
+        <section class="teams-header">
+            <h1>NBA Teams</h1>
+            <p>Explore every franchise profile with official team logos and quick access to team pages.</p>
+        </section>
+
+        <section class="team-grid">
+            {% for team in teams %}
+            <a class="team-card" href="{{ url_for('team_profile', team_abbr=team.abbr) }}">
+                {% if team.logo %}
+                <img src="{{ team.logo }}" alt="{{ team.name }} logo">
+                {% endif %}
+                <h2>{{ team.name }}</h2>
+                <p>{{ team.abbr }}</p>
+            </a>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+
+</html>
