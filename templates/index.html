@@ -7,6 +7,7 @@
     <title>NBA Stats Dashboard</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -75,6 +76,59 @@
                 </div>
             </div>
         </div>
+        {% endif %}
+
+        {% if career_table %}
+        <div class="career-table">
+            <h2>Season-by-Season Stats</h2>
+
+            <table>
+                <tr>
+                    <th>Season</th>
+                    <th>Team</th>
+                    <th>GP</th>
+                    <th>PPG</th>
+                    <th>RPG</th>
+                    <th>APG</th>
+                </tr>
+
+                {% for row in career_table %}
+                <tr>
+                    <td>{{ row.season }}</td>
+                    <td>{{ row.team }}</td>
+                    <td>{{ row.games }}</td>
+                    <td>{{ row.ppg }}</td>
+                    <td>{{ row.rpg }}</td>
+                    <td>{{ row.apg }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+        {% if career_table %}
+        <div class="chart-box">
+            <h2>Points Per Game by Season</h2>
+            <canvas id="ppgChart"></canvas>
+        </div>
+
+        <script>
+            const seasons = {{ career_table | map(attribute = 'season') | list | tojson }};
+            const ppgData = {{ career_table | map(attribute = 'ppg') | list | tojson }};
+
+            const ctx = document.getElementById('ppgChart');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: seasons,
+                    datasets: [{
+                        label: 'PPG',
+                        data: ppgData,
+                        tension: 0.3
+                    }]
+                }
+            });
+        </script>
         {% endif %}
 
         {% if error %}

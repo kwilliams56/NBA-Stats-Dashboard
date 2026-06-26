@@ -155,3 +155,38 @@ button:hover {
 .result-button:hover {
     background: #0066ff;
 }
+
+.career-table {
+    width: 800px;
+    margin: 40px auto;
+    background: #1d1d1d;
+    padding: 25px;
+    border-radius: 15px;
+}
+
+.career-table h2 {
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 12px;
+    border-bottom: 1px solid #333;
+}
+
+th {
+    color: #bbbbbb;
+}
+
+.chart-box {
+    width: 800px;
+    margin: 40px auto;
+    background: #1d1d1d;
+    padding: 25px;
+    border-radius: 15px;
+}

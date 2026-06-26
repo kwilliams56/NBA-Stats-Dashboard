@@ -44,6 +44,7 @@ def home():
     stats = None
     error = None
     search_results = []
+    career_table = []
 
     if request.method == "POST":
         player_name = request.form.get("player_name", "").strip()
@@ -91,6 +92,19 @@ def home():
                         "apg": round(latest_season["AST"] / games, 1),
                         "image_url": f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png",
                     }
+                    for _, row in df.iterrows():
+                        gp = row["GP"]
+
+                        career_table.append(
+                            {
+                                "season": row["SEASON_ID"],
+                                "team": row["TEAM_ABBREVIATION"],
+                                "games": gp,
+                                "ppg": round(row["PTS"] / gp, 1),
+                                "rpg": round(row["REB"] / gp, 1),
+                                "apg": round(row["AST"] / gp, 1),
+                            }
+                        )
                 else:
                     error = "Stats not available for this player."
             else:
@@ -104,6 +118,7 @@ def home():
         stats=stats,
         error=error,
         search_results=search_results,
+        career_table=career_table,
     )
 
 
