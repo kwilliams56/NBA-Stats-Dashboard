@@ -8,12 +8,20 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 
 <body>
 
     <nav>
-        <h2>🏀 NBA Stats Dashboard</h2>
+        <h2>🏀 NBA Analytics Dashboard</h2>
+
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/compare">Compare</a>
+            <a href="#">Teams</a>
+            <a href="#">Favorites</a>
+        </div>
     </nav>
 
     <div class="hero">
@@ -32,6 +40,43 @@
                 Search
             </button>
         </form>
+
+
+
+        <a class="compare-card" href="/compare">
+            <span>📊</span>
+            <strong>Compare Players</strong>
+            <span>→</span>
+        </a>
+        <section class="features">
+            <h2>What You Can Do</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span>📈</span>
+                    <h3>Player Stats</h3>
+                    <p>View season and career statistics.</p>
+                </div>
+
+                <div class="feature-card">
+                    <span>⚔️</span>
+                    <h3>Compare Players</h3>
+                    <p>Compare players side by side.</p>
+                </div>
+
+                <div class="feature-card">
+                    <span>⭐</span>
+                    <h3>Favorites</h3>
+                    <p>Save your favorite NBA players.</p>
+                </div>
+
+                <div class="feature-card">
+                    <span>🏀</span>
+                    <h3>Team Insights</h3>
+                    <p>Explore team analytics and trends.</p>
+                </div>
+            </div>
+        </section>
         {% if search_results %}
         <div class="results-box">
             <h3>Select a player:</h3>

@@ -12,12 +12,25 @@ body {
 
 nav {
     background: #1d1d1d;
-    padding: 20px;
-    text-align: center;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 25px;
+    font-size: 18px;
+}
+
+.nav-links a:hover {
+    color: #0066ff;
 }
 
 .hero {
-    margin-top: 100px;
+    margin-top: 75px;
     text-align: center;
 }
 
@@ -33,63 +46,70 @@ nav {
 }
 
 input {
-
-    width: 350px;
-
-    padding: 15px;
-
+    width: 430px;
+    height: 58px;
+    padding: 0 20px;
     border: none;
-
-    border-radius: 8px;
-
-    font-size: 18px;
-}
-
-button {
-
-    padding: 15px 25px;
-
-    margin-left: 10px;
-
-    background: #0066ff;
-
-    color: white;
-
-    border: none;
-
-    border-radius: 8px;
-
-    cursor: pointer;
-
-    font-size: 18px;
-}
-
-button:hover {
-
-    background: #004ecc;
-
-}
-
-.player-card {
-    background: #1d1d1d;
-    width: 400px;
-    margin: 50px auto;
-    padding: 25px;
     border-radius: 12px;
-}
-
-.error {
-    color: #ff4d4d;
-    margin-top: 30px;
     font-size: 20px;
 }
 
-.stats-card {
-    background: #242424;
-    width: 400px;
-    margin: 20px auto;
-    padding: 25px;
+button {
+    padding: 17px 32px;
+    margin-left: 10px;
+    background: #0066ff;
+    color: white;
+    border: none;
     border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+button:hover {
+    background: #004ecc;
+}
+
+.compare-card {
+    width: 520px;
+    max-width: 90%;
+    margin: 35px auto 70px;
+    padding: 22px 35px;
+    border: 2px solid #0066ff;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+    background: #111827;
+    font-size: 24px;
+    font-weight: 600;
+    box-shadow: 0 0 20px rgba(0, 102, 255, 0.25);
+    transition: all 0.3s ease;
+}
+
+.compare-card:hover {
+    background: #0066ff;
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 0 30px rgba(0, 102, 255, 0.6);
+}
+
+.results-box {
+    width: 400px;
+    margin: 30px auto;
+    background: #1d1d1d;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.result-button {
+    width: 100%;
+    margin: 8px 0;
+    background: #2a2a2a;
+}
+
+.result-button:hover {
+    background: #0066ff;
 }
 
 .player-card {
@@ -98,6 +118,15 @@ button:hover {
     margin: 50px auto;
     padding: 35px;
     border-radius: 18px;
+}
+
+.player-image {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #1d428a;
+    margin-bottom: 20px;
 }
 
 .player-card h2 {
@@ -129,34 +158,8 @@ button:hover {
     margin-bottom: 5px;
 }
 
-.player-image {
-    width: 180px;
-    height: 180px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 4px solid #1d428a;
-    margin-bottom: 20px;
-}
-
-.results-box {
-    width: 400px;
-    margin: 30px auto;
-    background: #1d1d1d;
-    padding: 20px;
-    border-radius: 12px;
-}
-
-.result-button {
-    width: 100%;
-    margin: 8px 0;
-    background: #2a2a2a;
-}
-
-.result-button:hover {
-    background: #0066ff;
-}
-
-.career-table {
+.career-table,
+.chart-box {
     width: 800px;
     margin: 40px auto;
     background: #1d1d1d;
@@ -164,7 +167,8 @@ button:hover {
     border-radius: 15px;
 }
 
-.career-table h2 {
+.career-table h2,
+.chart-box h2 {
     margin-bottom: 20px;
 }
 
@@ -183,10 +187,56 @@ th {
     color: #bbbbbb;
 }
 
-.chart-box {
-    width: 800px;
-    margin: 40px auto;
+.features {
+    width: 900px;
+    max-width: 90%;
+    margin: 20px auto 70px;
+    background: #111827;
+    padding: 35px;
+    border-radius: 18px;
+    border: 1px solid #333;
+}
+
+.features h2 {
+    margin-bottom: 30px;
+    color: #0066ff;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.feature-card {
     background: #1d1d1d;
     padding: 25px;
-    border-radius: 15px;
+    border-radius: 14px;
+    border: 1px solid #333;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    border: 1px solid #0066ff;
+    box-shadow: 0 0 25px rgba(0, 102, 255, 0.35);
+}
+
+.feature-card span {
+    font-size: 35px;
+}
+
+.feature-card h3 {
+    margin: 15px 0 10px;
+}
+
+.feature-card p {
+    color: #bbbbbb;
+}
+
+.error {
+    color: #ff4d4d;
+    margin-top: 30px;
+    font-size: 20px;
 }
