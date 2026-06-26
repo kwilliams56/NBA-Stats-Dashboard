@@ -236,6 +236,45 @@ def get_similar_players(player, limit=4):
     ]
 
 
+def get_league_leaders(limit=5):
+    leader_categories = {
+        "ppg": {"title": "Points Per Game", "label": "PPG", "format": "number"},
+        "rpg": {"title": "Rebounds Per Game", "label": "RPG", "format": "number"},
+        "apg": {"title": "Assists Per Game", "label": "APG", "format": "number"},
+        "fg_pct": {"title": "Field Goal Percentage", "label": "FG%", "format": "percent"},
+        "fg3_pct": {"title": "Three-Point Percentage", "label": "3PT%", "format": "percent"},
+        "ft_pct": {"title": "Free Throw Percentage", "label": "FT%", "format": "percent"},
+    }
+    player_pool = []
+
+    for player_name in similar_player_pool:
+        try:
+            player = get_player_stats(player_name)
+        except Exception:
+            continue
+
+        if player:
+            player_pool.append(player)
+
+    leaders = []
+
+    for stat, category in leader_categories.items():
+        ranked_players = sorted(
+            player_pool, key=lambda player: player.get(stat, 0), reverse=True
+        )[:limit]
+        leaders.append(
+            {
+                "key": stat,
+                "title": category["title"],
+                "label": category["label"],
+                "format": category["format"],
+                "players": ranked_players,
+            }
+        )
+
+    return leaders
+
+
 @app.route("/", methods=["GET", "POST"])
 def home():
     player_info = None
@@ -349,6 +388,13 @@ def compare():
     return render_template(
         "compare.html", player1=player1, player2=player2, error=error
     )
+
+
+@app.route("/leaders")
+def league_leaders():
+    leaders = get_league_leaders()
+
+    return render_template("leaders.html", leaders=leaders)
 
 
 @app.route("/teams")

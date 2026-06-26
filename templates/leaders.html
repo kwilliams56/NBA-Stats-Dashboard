@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA League Leaders</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <nav>
+        <h2>NBA<span>Stats</span></h2>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/compare">Compare</a>
+            <a href="{{ url_for('teams') }}">Teams</a>
+            <a href="{{ url_for('league_leaders') }}">Leaders</a>
+            <a href="#">Favorites</a>
+        </div>
+    </nav>
+
+    <main class="leaders-page">
+        <section class="leaders-header">
+            <h1>League Leaders</h1>
+            <p>Top performers across scoring, rebounding, playmaking, and shooting categories.</p>
+        </section>
+
+        <section class="leaders-grid">
+            {% for category in leaders %}
+            <article class="leader-board">
+                <div class="leader-board-header">
+                    <h2>{{ category.title }}</h2>
+                    <span>{{ category.label }}</span>
+                </div>
+
+                <div class="leader-list">
+                    {% for player in category.players %}
+                    <a class="leader-row" href="{{ url_for('player_profile', player_name=player.name) }}">
+                        <strong>{{ loop.index }}</strong>
+                        <img src="{{ player.image_url }}" alt="{{ player.name }} headshot">
+                        <div>
+                            <h3>{{ player.name }}</h3>
+                            <p>{{ player.team_name }}</p>
+                        </div>
+                        {% if category.format == 'percent' %}
+                        <span>{{ player[category.key] }}%</span>
+                        {% else %}
+                        <span>{{ player[category.key] }}</span>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+
+</html>

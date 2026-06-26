@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Add league leaders
+- [ ] Improve charts with better Chart.js styling
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -42,10 +42,10 @@
 - [ ] Team roster
 
 ## Advanced Analytics
-- [ ] League leaders
-- [ ] Best shooters
-- [ ] Top scorers
-- [ ] Top passers
+- [x] League leaders
+- [x] Best shooters
+- [x] Top scorers
+- [x] Top passers
 - [ ] Defensive leaders
 
 ## Polish
