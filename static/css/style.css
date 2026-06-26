@@ -82,3 +82,46 @@ button:hover{
     margin-top: 30px;
     font-size: 20px;
 }
+.stats-card {
+    background: #242424;
+    width: 400px;
+    margin: 20px auto;
+    padding: 25px;
+    border-radius: 12px;
+}
+.player-card {
+    background: #1d1d1d;
+    width: 520px;
+    margin: 50px auto;
+    padding: 35px;
+    border-radius: 18px;
+}
+
+.player-card h2 {
+    font-size: 36px;
+    margin-bottom: 5px;
+}
+
+.team,
+.season {
+    color: #bbbbbb;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.stat-grid div {
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.stat-grid h3 {
+    font-size: 28px;
+    margin-bottom: 5px;
+}

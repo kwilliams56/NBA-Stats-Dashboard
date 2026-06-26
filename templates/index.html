@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NBA Stats Dashboard</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
@@ -35,11 +35,34 @@
         Search
     </button>
 </form>
-{% if player %}
+{% if player and stats %}
     <div class="player-card">
         <h2>{{ player.full_name }}</h2>
-        <p><strong>Player ID:</strong> {{ player.id }}</p>
-        <p><strong>Active:</strong> {{ player.is_active }}</p>
+        <p class="team">{{ stats.team }}</p>
+
+        <p class="season">{{ stats.season }} Season</p>
+
+        <div class="stat-grid">
+            <div>
+                <h3>{{ stats.ppg }}</h3>
+                <p>PPG</p>
+            </div>
+
+            <div>
+                <h3>{{ stats.rpg }}</h3>
+                <p>RPG</p>
+            </div>
+
+            <div>
+                <h3>{{ stats.apg }}</h3>
+                <p>APG</p>
+            </div>
+
+            <div>
+                <h3>{{ stats.games }}</h3>
+                <p>Games</p>
+            </div>
+        </div>
     </div>
 {% endif %}
 
