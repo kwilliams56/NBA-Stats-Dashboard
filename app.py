@@ -38,6 +38,48 @@ team_names = {
 }
 
 
+def get_player_stats(player_name):
+    all_players = players.get_players()
+
+    matching_players = [
+        player
+        for player in all_players
+        if player_name.lower() in player["full_name"].lower()
+    ]
+
+    if not matching_players:
+        return None
+
+    player_info = matching_players[0]
+    player_id = player_info["id"]
+
+    career = playercareerstats.PlayerCareerStats(player_id=player_id)
+    df = career.get_data_frames()[0]
+
+    if df.empty:
+        return None
+
+    df = df[df["GP"] > 0]
+
+    if df.empty:
+        return None
+
+    latest_season = df.iloc[-1]
+    games = latest_season["GP"]
+    team_abbr = latest_season["TEAM_ABBREVIATION"]
+
+    return {
+        "name": player_info["full_name"],
+        "team_name": team_names.get(team_abbr, team_abbr),
+        "season": latest_season["SEASON_ID"],
+        "games": games,
+        "ppg": round(latest_season["PTS"] / games, 1),
+        "rpg": round(latest_season["REB"] / games, 1),
+        "apg": round(latest_season["AST"] / games, 1),
+        "image_url": f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png",
+    }
+
+
 @app.route("/", methods=["GET", "POST"])
 def home():
     player_info = None
@@ -122,9 +164,25 @@ def home():
     )
 
 
-@app.route("/compare")
+@app.route("/compare", methods=["GET", "POST"])
 def compare():
-    return render_template("compare.html")
+    player1 = None
+    player2 = None
+    error = None
+
+    if request.method == "POST":
+        player1_name = request.form.get("player1", "").strip()
+        player2_name = request.form.get("player2", "").strip()
+
+        player1 = get_player_stats(player1_name)
+        player2 = get_player_stats(player2_name)
+
+        if not player1 or not player2:
+            error = "One or both players could not be found."
+
+    return render_template(
+        "compare.html", player1=player1, player2=player2, error=error
+    )
 
 
 if __name__ == "__main__":

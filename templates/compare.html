@@ -11,11 +11,127 @@
 
 <body>
 
-    <h1>Compare Players</h1>
+    <nav>
+        <h2>🏀 NBA Analytics Dashboard</h2>
 
-    <p>This page is coming soon.</p>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/compare">Compare</a>
+            <a href="#">Teams</a>
+            <a href="#">Favorites</a>
+        </div>
+    </nav>
 
-    <a href="/">← Back to Home</a>
+    <div class="hero">
+
+        <h1>Compare Two NBA Players</h1>
+
+        <p>
+            Search for two players and compare their career statistics.
+        </p>
+
+        <form method="POST">
+
+            <input type="text" name="player1" placeholder="Player 1" required>
+
+            <br><br>
+
+            <input type="text" name="player2" placeholder="Player 2" required>
+
+            <br><br>
+
+            <button>
+                Compare
+            </button>
+
+        </form>
+        {% if player1 and player2 %}
+        <div class="compare-results">
+            <div class="compare-player-card">
+                <img src="{{ player1.image_url }}" class="player-image">
+                <h2>{{ player1.name }}</h2>
+                <p class="team">{{ player1.team_name }}</p>
+
+                <div class="stat-grid">
+                    <div>
+                        <h3>{{ player1.ppg }}</h3>
+                        <p>PPG</p>
+                    </div>
+                    <div>
+                        <h3>{{ player1.rpg }}</h3>
+                        <p>RPG</p>
+                    </div>
+                    <div>
+                        <h3>{{ player1.apg }}</h3>
+                        <p>APG</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="compare-player-card">
+                <img src="{{ player2.image_url }}" class="player-image">
+                <h2>{{ player2.name }}</h2>
+                <p class="team">{{ player2.team_name }}</p>
+
+                <div class="stat-grid">
+                    <div>
+                        <h3>{{ player2.ppg }}</h3>
+                        <p>PPG</p>
+                    </div>
+                    <div>
+                        <h3>{{ player2.rpg }}</h3>
+                        <p>RPG</p>
+                    </div>
+                    <div>
+                        <h3>{{ player2.apg }}</h3>
+                        <p>APG</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if player1 and player2 %}
+        <div class="comparison-table">
+            <h2>Stat Comparison</h2>
+
+            <table>
+                <tr>
+                    <th>Stat</th>
+                    <th>{{ player1.name }}</th>
+                    <th>{{ player2.name }}</th>
+                </tr>
+
+                <tr>
+                    <td>PPG</td>
+                    <td class="{% if player1.ppg > player2.ppg %}winner{% endif %}">{{ player1.ppg }}</td>
+                    <td class="{% if player2.ppg > player1.ppg %}winner{% endif %}">{{ player2.ppg }}</td>
+                </tr>
+
+                <tr>
+                    <td>RPG</td>
+                    <td class="{% if player1.rpg > player2.rpg %}winner{% endif %}">{{ player1.rpg }}</td>
+                    <td class="{% if player2.rpg > player1.rpg %}winner{% endif %}">{{ player2.rpg }}</td>
+                </tr>
+
+                <tr>
+                    <td>APG</td>
+                    <td class="{% if player1.apg > player2.apg %}winner{% endif %}">{{ player1.apg }}</td>
+                    <td class="{% if player2.apg > player1.apg %}winner{% endif %}">{{ player2.apg }}</td>
+                </tr>
+
+                <tr>
+                    <td>Games</td>
+                    <td class="{% if player1.games > player2.games %}winner{% endif %}">{{ player1.games }}</td>
+                    <td class="{% if player2.games > player1.games %}winner{% endif %}">{{ player2.games }}</td>
+                </tr>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+    </div>
 
 </body>
 

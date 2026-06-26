@@ -28,10 +28,14 @@
 
         <h1>Search Any NBA Player</h1>
 
-        <p>
-            View player statistics, compare players,
-            and explore NBA analytics.
+        <p class="hero-subtitle">
+            Real-time player stats, career trends, and head-to-head NBA comparisons.
         </p>
+        <div class="hero-tags">
+            <span>Live NBA Data</span>
+            <span>Player Charts</span>
+            <span>Head-to-Head</span>
+        </div>
 
         <form method="POST">
             <input type="text" name="player_name" placeholder="Enter player name..." required>
@@ -48,6 +52,35 @@
             <strong>Compare Players</strong>
             <span>→</span>
         </a>
+
+        <section class="trending">
+            <div class="section-header">
+                <h2>Trending Players</h2>
+                <p>Quick searches for star players</p>
+            </div>
+
+            <div class="trending-grid">
+                <form method="POST">
+                    <input type="hidden" name="player_name" value="Stephen Curry">
+                    <button class="trending-card">Stephen Curry</button>
+                </form>
+
+                <form method="POST">
+                    <input type="hidden" name="player_name" value="LeBron James">
+                    <button class="trending-card">LeBron James</button>
+                </form>
+
+                <form method="POST">
+                    <input type="hidden" name="player_name" value="Anthony Edwards">
+                    <button class="trending-card">Anthony Edwards</button>
+                </form>
+
+                <form method="POST">
+                    <input type="hidden" name="player_name" value="Luka Doncic">
+                    <button class="trending-card">Luka Doncic</button>
+                </form>
+            </div>
+        </section>
         <section class="features">
             <h2>What You Can Do</h2>
 
