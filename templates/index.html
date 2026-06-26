@@ -31,6 +31,20 @@
                 Search
             </button>
         </form>
+        {% if search_results %}
+        <div class="results-box">
+            <h3>Select a player:</h3>
+
+            {% for result in search_results %}
+            <form method="POST">
+                <input type="hidden" name="player_id" value="{{ result.id }}">
+                <button class="result-button" type="submit">
+                    {{ result.full_name }}
+                </button>
+            </form>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% if stats %}
         <div class="player-card">
             <img src="{{ stats.image_url }}" class="player-image">

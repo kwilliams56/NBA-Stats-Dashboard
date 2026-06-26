@@ -43,20 +43,31 @@ def home():
     player_info = None
     stats = None
     error = None
+    search_results = []
 
     if request.method == "POST":
         player_name = request.form.get("player_name", "").strip()
-        matching_players = players.find_players_by_full_name(player_name)
+        selected_player_id = request.form.get("player_id")
 
-        if not matching_players:
-            all_players = players.get_players()
+        all_players = players.get_players()
+
+        if selected_player_id:
+            matching_players = [
+                player
+                for player in all_players
+                if str(player["id"]) == selected_player_id
+            ]
+        else:
             matching_players = [
                 player
                 for player in all_players
                 if player_name.lower() in player["full_name"].lower()
             ]
 
-        if matching_players:
+        if len(matching_players) > 1 and not selected_player_id:
+            search_results = matching_players[:10]
+
+        elif len(matching_players) == 1:
             player_info = matching_players[0]
             player_id = player_info["id"]
 
@@ -73,7 +84,6 @@ def home():
 
                     stats = {
                         "season": latest_season["SEASON_ID"],
-                        "team": team_abbr,
                         "team_name": team_names.get(team_abbr, team_abbr),
                         "games": games,
                         "ppg": round(latest_season["PTS"] / games, 1),
@@ -88,7 +98,13 @@ def home():
         else:
             error = "Player not found. Try another name."
 
-    return render_template("index.html", player=player_info, stats=stats, error=error)
+    return render_template(
+        "index.html",
+        player=player_info,
+        stats=stats,
+        error=error,
+        search_results=search_results,
+    )
 
 
 if __name__ == "__main__":
