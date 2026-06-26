@@ -1,74 +1,75 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-body{
-    background:#121212;
-    color:white;
-    font-family:Arial, Helvetica, sans-serif;
+body {
+    background: #121212;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-nav{
-    background:#1d1d1d;
-    padding:20px;
-    text-align:center;
+nav {
+    background: #1d1d1d;
+    padding: 20px;
+    text-align: center;
 }
 
-.hero{
-    margin-top:100px;
-    text-align:center;
+.hero {
+    margin-top: 100px;
+    text-align: center;
 }
 
-.hero h1{
-    font-size:55px;
-    margin-bottom:20px;
+.hero h1 {
+    font-size: 55px;
+    margin-bottom: 20px;
 }
 
-.hero p{
-    font-size:22px;
-    color:#bbbbbb;
-    margin-bottom:40px;
+.hero p {
+    font-size: 22px;
+    color: #bbbbbb;
+    margin-bottom: 40px;
 }
 
-input{
+input {
 
-    width:350px;
+    width: 350px;
 
-    padding:15px;
+    padding: 15px;
 
-    border:none;
+    border: none;
 
-    border-radius:8px;
+    border-radius: 8px;
 
-    font-size:18px;
+    font-size: 18px;
 }
 
-button{
+button {
 
-    padding:15px 25px;
+    padding: 15px 25px;
 
-    margin-left:10px;
+    margin-left: 10px;
 
-    background:#0066ff;
+    background: #0066ff;
 
-    color:white;
+    color: white;
 
-    border:none;
+    border: none;
 
-    border-radius:8px;
+    border-radius: 8px;
 
-    cursor:pointer;
+    cursor: pointer;
 
-    font-size:18px;
+    font-size: 18px;
 }
 
-button:hover{
+button:hover {
 
-    background:#004ecc;
+    background: #004ecc;
 
 }
+
 .player-card {
     background: #1d1d1d;
     width: 400px;
@@ -82,6 +83,7 @@ button:hover{
     margin-top: 30px;
     font-size: 20px;
 }
+
 .stats-card {
     background: #242424;
     width: 400px;
@@ -89,6 +91,7 @@ button:hover{
     padding: 25px;
     border-radius: 12px;
 }
+
 .player-card {
     background: #1d1d1d;
     width: 520px;
@@ -124,4 +127,13 @@ button:hover{
 .stat-grid h3 {
     font-size: 28px;
     margin-bottom: 5px;
+}
+
+.player-image {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #1d428a;
+    margin-bottom: 20px;
 }

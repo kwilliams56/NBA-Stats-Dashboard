@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,67 +11,64 @@
 
 <body>
 
-<nav>
-    <h2>🏀 NBA Stats Dashboard</h2>
-</nav>
+    <nav>
+        <h2>🏀 NBA Stats Dashboard</h2>
+    </nav>
 
-<div class="hero">
+    <div class="hero">
 
-    <h1>Search Any NBA Player</h1>
+        <h1>Search Any NBA Player</h1>
 
-    <p>
-        View player statistics, compare players,
-        and explore NBA analytics.
-    </p>
+        <p>
+            View player statistics, compare players,
+            and explore NBA analytics.
+        </p>
 
-    <form method="POST">
-    <input
-        type="text"
-        name="player_name"
-        placeholder="Enter player name..."
-        required
-    >
+        <form method="POST">
+            <input type="text" name="player_name" placeholder="Enter player name..." required>
 
-    <button type="submit">
-        Search
-    </button>
-</form>
-{% if player and stats %}
-    <div class="player-card">
-        <h2>{{ player.full_name }}</h2>
-        <p class="team">{{ stats.team }}</p>
+            <button type="submit">
+                Search
+            </button>
+        </form>
+        {% if stats %}
+        <div class="player-card">
+            <img src="{{ stats.image_url }}" class="player-image">
+            <h2>{{ player.full_name }}</h2>
+            <p class="team">{{ stats.team_name }}</p>
 
-        <p class="season">{{ stats.season }} Season</p>
+            <p class="season">{{ stats.season }} Season</p>
 
-        <div class="stat-grid">
-            <div>
-                <h3>{{ stats.ppg }}</h3>
-                <p>PPG</p>
-            </div>
+            <div class="stat-grid">
+                <div>
+                    <h3>{{ stats.ppg }}</h3>
+                    <p>PPG</p>
+                </div>
 
-            <div>
-                <h3>{{ stats.rpg }}</h3>
-                <p>RPG</p>
-            </div>
+                <div>
+                    <h3>{{ stats.rpg }}</h3>
+                    <p>RPG</p>
+                </div>
 
-            <div>
-                <h3>{{ stats.apg }}</h3>
-                <p>APG</p>
-            </div>
+                <div>
+                    <h3>{{ stats.apg }}</h3>
+                    <p>APG</p>
+                </div>
 
-            <div>
-                <h3>{{ stats.games }}</h3>
-                <p>Games</p>
+                <div>
+                    <h3>{{ stats.games }}</h3>
+                    <p>Games</p>
+                </div>
             </div>
         </div>
+        {% endif %}
+
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+
     </div>
-{% endif %}
-
-{% if error %}
-    <p class="error">{{ error }}</p>
-{% endif %}
-
-</div>
 
 </body>
+
 </html>
