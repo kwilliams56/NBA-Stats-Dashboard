@@ -116,9 +116,15 @@ similar_player_pool = [
 
 def normalize_player_name(player_name):
     normalized = unicodedata.normalize("NFKD", player_name)
-    return "".join(
-        character for character in normalized if not unicodedata.combining(character)
-    ).casefold().strip()
+    return (
+        "".join(
+            character
+            for character in normalized
+            if not unicodedata.combining(character)
+        )
+        .casefold()
+        .strip()
+    )
 
 
 def find_matching_players(player_name, player_list):
@@ -323,9 +329,21 @@ def get_league_leaders(limit=5):
         "apg": {"title": "Assists Per Game", "label": "APG", "format": "number"},
         "spg": {"title": "Steals Per Game", "label": "SPG", "format": "number"},
         "bpg": {"title": "Blocks Per Game", "label": "BPG", "format": "number"},
-        "fg_pct": {"title": "Field Goal Percentage", "label": "FG%", "format": "percent"},
-        "fg3_pct": {"title": "Three-Point Percentage", "label": "3PT%", "format": "percent"},
-        "ft_pct": {"title": "Free Throw Percentage", "label": "FT%", "format": "percent"},
+        "fg_pct": {
+            "title": "Field Goal Percentage",
+            "label": "FG%",
+            "format": "percent",
+        },
+        "fg3_pct": {
+            "title": "Three-Point Percentage",
+            "label": "3PT%",
+            "format": "percent",
+        },
+        "ft_pct": {
+            "title": "Free Throw Percentage",
+            "label": "FT%",
+            "format": "percent",
+        },
     }
     player_pool = []
 
@@ -622,6 +640,30 @@ def player_profile(player_name):
 
     return render_template(
         "player.html", player=player, similar_players=similar_players, error=None
+    )
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return (
+        render_template(
+            "error.html",
+            title="Page Not Found",
+            message="The page you are looking for does not exist.",
+        ),
+        404,
+    )
+
+
+@app.errorhandler(500)
+def server_error(error):
+    return (
+        render_template(
+            "error.html",
+            title="Something Went Wrong",
+            message="NBA data may be temporarily unavailable. Please try again later.",
+        ),
+        500,
     )
 
 

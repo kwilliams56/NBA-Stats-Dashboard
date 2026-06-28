@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <nav>
+        <h2>NBA<span>Stats</span></h2>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/compare">Compare</a>
+            <a href="/teams">Teams</a>
+            <a href="#">Favorites</a>
+        </div>
+    </nav>
+
+    <div class="error-panel">
+        <h1>{{ title }}</h1>
+        <p>{{ message }}</p>
+        <a href="/" class="error-button">Back Home →</a>
+    </div>
+
+</body>
+
+</html>
