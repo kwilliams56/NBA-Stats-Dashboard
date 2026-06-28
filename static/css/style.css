@@ -1677,3 +1677,96 @@ th {
         padding: 22px;
     }
 }
+
+/* TEAM ROSTER */
+
+.team-roster-section {
+    margin-top: 42px;
+}
+
+.team-roster-scroll {
+    overflow-x: auto;
+    background: #111827;
+    border: 1px solid #333;
+    border-radius: 8px;
+}
+
+.team-roster-table {
+    min-width: 820px;
+    text-align: left;
+}
+
+.team-roster-table th {
+    padding: 14px 18px;
+    background: #0b0f17;
+    color: #bbbbbb;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.team-roster-table td {
+    padding: 12px 18px;
+    color: #d1d5db;
+    font-size: 15px;
+    vertical-align: middle;
+}
+
+.team-roster-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.team-roster-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.roster-player-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 220px;
+    color: #ffffff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.roster-player-link:hover {
+    color: #66a3ff;
+}
+
+.roster-player-link img {
+    width: 62px;
+    height: 46px;
+    flex: 0 0 auto;
+    object-fit: contain;
+    background: #0b0f17;
+    border-radius: 4px;
+}
+
+.team-roster-unavailable {
+    padding: 24px;
+    background: #111827;
+    border: 1px solid #333;
+    border-left: 4px solid #ff4d4d;
+    border-radius: 8px;
+}
+
+.team-roster-unavailable p {
+    margin: 0;
+    color: #bbbbbb;
+}
+
+@media (max-width: 600px) {
+    .team-roster-section {
+        margin-top: 34px;
+    }
+
+    .team-roster-table th,
+    .team-roster-table td {
+        padding: 10px 14px;
+    }
+
+    .roster-player-link img {
+        width: 54px;
+        height: 42px;
+    }
+}

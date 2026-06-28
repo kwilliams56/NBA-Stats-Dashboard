@@ -89,6 +89,53 @@
             <p>{{ stats_error }}</p>
         </section>
         {% endif %}
+
+        <section class="team-roster-section">
+            <div class="team-section-heading">
+                <p>{{ stats.season if stats else "Current Season" }}</p>
+                <h2>Team Roster</h2>
+            </div>
+
+            {% if roster %}
+            <div class="team-roster-scroll">
+                <table class="team-roster-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>No.</th>
+                            <th>Pos</th>
+                            <th>Height</th>
+                            <th>Weight</th>
+                            <th>Age</th>
+                            <th>Exp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for player in roster %}
+                        <tr>
+                            <td>
+                                <a class="roster-player-link" href="{{ url_for('player_profile', player_name=player.name) }}">
+                                    <img src="{{ player.image_url }}" alt="{{ player.name }} headshot">
+                                    <span>{{ player.name }}</span>
+                                </a>
+                            </td>
+                            <td>{{ player.number }}</td>
+                            <td>{{ player.position }}</td>
+                            <td>{{ player.height }}</td>
+                            <td>{{ player.weight }}{% if player.weight != "--" %} lbs{% endif %}</td>
+                            <td>{{ player.age }}</td>
+                            <td>{{ player.experience }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% elif roster_error %}
+            <div class="team-roster-unavailable">
+                <p>{{ roster_error }}</p>
+            </div>
+            {% endif %}
+        </section>
     </main>
     {% else %}
     <p class="error">{{ error }}</p>
