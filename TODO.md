@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Responsive design
+- [ ] Loading animation
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -51,7 +51,7 @@
 - [x] Defensive leaders
 
 ## Polish
-- [ ] Responsive design
+- [x] Responsive design
 - [ ] Loading animation
 - [ ] Better error handling
 - [ ] Better README screenshots

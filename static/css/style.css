@@ -2191,3 +2191,298 @@ th {
         grid-template-columns: 1fr;
     }
 }
+
+/* FULL APP RESPONSIVE AUDIT */
+
+.stat-grid {
+    display: grid;
+    gap: 15px;
+}
+
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+img,
+canvas {
+    max-width: 100%;
+}
+
+.profile-hero h1,
+.compare-player-card h2,
+.team-profile-hero h1,
+.team-card h2,
+.leader-row h3,
+.trending-card h3 {
+    overflow-wrap: anywhere;
+}
+
+.career-table {
+    overflow-x: auto;
+}
+
+.career-table table {
+    min-width: 620px;
+}
+
+@media (max-width: 900px) {
+    nav {
+        align-items: stretch;
+    }
+
+    .nav-links {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        padding-bottom: 3px;
+        scrollbar-width: none;
+    }
+
+    .nav-links::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-links a {
+        flex: 0 0 auto;
+    }
+
+    .profile-hero {
+        width: calc(100% - 40px);
+        max-width: 900px;
+        padding: 36px;
+    }
+
+    .profile-player-img {
+        width: 220px;
+        height: 220px;
+    }
+
+    .profile-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .career-total-cards,
+    .similar-players,
+    .profile-hero .chart-box,
+    .profile-hero .career-table {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .teams-page,
+    .team-profile-page,
+    .leaders-page,
+    .site-footer {
+        width: calc(100% - 40px);
+        max-width: 1100px;
+    }
+}
+
+@media (max-width: 700px) {
+    nav {
+        padding: 14px 18px;
+        gap: 10px;
+    }
+
+    nav h2 {
+        font-size: 23px;
+    }
+
+    .nav-links {
+        gap: 16px;
+    }
+
+    .nav-links a {
+        font-size: 14px;
+    }
+
+    .profile-hero,
+    .teams-page,
+    .team-profile-page,
+    .leaders-page,
+    .site-footer {
+        width: calc(100% - 28px);
+    }
+
+    .profile-hero {
+        margin: 28px auto 48px;
+        padding: 26px 18px;
+    }
+
+    .profile-hero h1 {
+        font-size: 38px;
+        line-height: 1.12;
+    }
+
+    .profile-hero > p {
+        font-size: 18px;
+    }
+
+    .profile-player-img {
+        width: 190px;
+        height: 190px;
+    }
+
+    .profile-team-logo {
+        width: 68px;
+        height: 68px;
+        margin: 14px auto;
+    }
+
+    .profile-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .profile-stats div {
+        padding: 16px 10px;
+    }
+
+    .profile-stats h3 {
+        font-size: 24px;
+    }
+
+    .career-total-cards,
+    .similar-players,
+    .profile-hero .chart-box,
+    .profile-hero .career-table {
+        margin: 28px auto;
+        padding: 18px;
+    }
+
+    .profile-hero .chart-box {
+        min-height: 370px;
+    }
+
+    .profile-hero .chart-box canvas {
+        height: 300px !important;
+    }
+
+    .profile-hero .career-table table {
+        min-width: 600px;
+    }
+
+    .team-profile-hero {
+        padding: 36px 20px;
+    }
+
+    .team-profile-hero img {
+        width: 120px;
+        height: 120px;
+    }
+
+    .team-profile-hero h1,
+    .leaders-header h1,
+    .teams-header h1 {
+        font-size: 38px;
+        line-height: 1.15;
+    }
+
+    .leader-board {
+        padding: 18px;
+        border-radius: 8px;
+    }
+
+    .leader-row {
+        min-width: 0;
+        grid-template-columns: 24px 52px minmax(0, 1fr) auto;
+        gap: 10px;
+    }
+
+    .leader-row span {
+        font-size: 19px;
+    }
+
+    .compare-header h1 {
+        overflow-wrap: anywhere;
+    }
+
+    .comparison-tables-grid .comparison-table table {
+        min-width: 520px;
+    }
+}
+
+@media (max-width: 520px) {
+    .section-header {
+        align-items: flex-start;
+    }
+
+    .section-header h2,
+    .team-section-heading h2,
+    .compare-section-heading h2 {
+        font-size: 24px;
+    }
+
+    .similar-player-card {
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .similar-player-card img {
+        width: 64px;
+        height: 64px;
+    }
+
+    .similar-player-card > span,
+    .similar-tags {
+        grid-column: 2;
+        justify-self: start;
+    }
+
+    .compare-player-card {
+        padding: 22px 16px;
+    }
+
+    .compare-player-card .team-logo {
+        top: 16px;
+        right: 16px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .compare-player-card .stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .compare-chart-grid .radar-chart-box,
+    .compare-chart-grid .comparison-chart-box {
+        height: 390px;
+        padding: 14px;
+    }
+
+    .compare-chart-grid .radar-chart-box canvas,
+    .compare-chart-grid .comparison-chart-box canvas {
+        height: 315px !important;
+    }
+
+    .team-record-panel h2 {
+        font-size: 34px;
+    }
+
+    .team-stat-card h3 {
+        font-size: 30px;
+    }
+
+    .leader-row {
+        padding: 10px 8px;
+        grid-template-columns: 22px 46px minmax(0, 1fr);
+    }
+
+    .leader-row img {
+        width: 46px;
+        height: 46px;
+    }
+
+    .leader-row span {
+        grid-column: 3;
+        text-align: left;
+    }
+
+    .site-footer {
+        padding: 20px;
+        border-radius: 8px;
+    }
+}
