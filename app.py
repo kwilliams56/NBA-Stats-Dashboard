@@ -1,8 +1,9 @@
+from datetime import datetime
 from functools import lru_cache
 
 from flask import Flask, render_template, request
-from nba_api.stats.static import players
-from nba_api.stats.endpoints import playercareerstats
+from nba_api.stats.static import players, teams as nba_teams
+from nba_api.stats.endpoints import playercareerstats, teamdashboardbygeneralsplits
 
 app = Flask(__name__)
 
@@ -400,6 +401,42 @@ def league_leaders():
     return render_template("leaders.html", leaders=leaders)
 
 
+def get_current_nba_season():
+    today = datetime.now()
+    start_year = today.year if today.month >= 10 else today.year - 1
+    return f"{start_year}-{str(start_year + 1)[-2:]}"
+
+
+@lru_cache(maxsize=64)
+def get_team_stats(team_id, season):
+    dashboard = teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits(
+        team_id=team_id,
+        season=season,
+        per_mode_detailed="PerGame",
+        timeout=15,
+    )
+    overall = dashboard.get_data_frames()[0]
+
+    if overall.empty:
+        return None
+
+    stats = overall.iloc[0]
+
+    return {
+        "season": season,
+        "games": int(stats["GP"]),
+        "wins": int(stats["W"]),
+        "losses": int(stats["L"]),
+        "win_pct": round(float(stats["W_PCT"]) * 100, 1),
+        "ppg": round(float(stats["PTS"]), 1),
+        "rpg": round(float(stats["REB"]), 1),
+        "apg": round(float(stats["AST"]), 1),
+        "fg_pct": round(float(stats["FG_PCT"]) * 100, 1),
+        "fg3_pct": round(float(stats["FG3_PCT"]) * 100, 1),
+        "ft_pct": round(float(stats["FT_PCT"]) * 100, 1),
+    }
+
+
 @app.route("/teams")
 def teams():
     team_list = [
@@ -421,13 +458,31 @@ def team_profile(team_abbr):
     if team_abbr not in team_names:
         return render_template("team.html", team=None, error="Team not found.")
 
+    nba_team = nba_teams.find_team_by_abbreviation(team_abbr)
     team = {
+        "id": nba_team["id"] if nba_team else None,
         "abbr": team_abbr,
         "name": team_names[team_abbr],
         "logo": team_logos.get(team_abbr),
     }
+    stats = None
+    stats_error = None
 
-    return render_template("team.html", team=team, error=None)
+    if team["id"]:
+        try:
+            stats = get_team_stats(team["id"], get_current_nba_season())
+        except Exception:
+            stats_error = "Team statistics are temporarily unavailable."
+    else:
+        stats_error = "Team statistics are temporarily unavailable."
+
+    return render_template(
+        "team.html",
+        team=team,
+        stats=stats,
+        stats_error=stats_error,
+        error=None,
+    )
 
 
 @app.route("/player/<player_name>")

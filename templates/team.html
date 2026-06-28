@@ -30,23 +30,65 @@
             <h1>{{ team.name }}</h1>
         </section>
 
-        <section class="team-profile-panel">
-            <h2>Team Overview</h2>
-            <div class="team-overview-grid">
-                <div>
-                    <h3>Franchise</h3>
-                    <p>{{ team.name }}</p>
-                </div>
-                <div>
-                    <h3>Abbreviation</h3>
-                    <p>{{ team.abbr }}</p>
-                </div>
-                <div>
-                    <h3>Data</h3>
-                    <p>Roster and team stats coming next.</p>
-                </div>
+        {% if stats %}
+        <section class="team-record-panel">
+            <div>
+                <p>{{ stats.season }} Regular Season</p>
+                <h2>{{ stats.wins }}-{{ stats.losses }}</h2>
+                <span>Team Record</span>
+            </div>
+            <div>
+                <p>Win Percentage</p>
+                <h2>{{ stats.win_pct }}%</h2>
+                <span>{{ stats.games }} Games Played</span>
             </div>
         </section>
+
+        <section class="team-stats-section">
+            <div class="team-section-heading">
+                <p>Season Performance</p>
+                <h2>Team Statistics</h2>
+            </div>
+
+            <div class="team-stat-grid">
+                <article class="team-stat-card">
+                    <span>PPG</span>
+                    <h3>{{ stats.ppg }}</h3>
+                    <p>Points Per Game</p>
+                </article>
+                <article class="team-stat-card">
+                    <span>RPG</span>
+                    <h3>{{ stats.rpg }}</h3>
+                    <p>Rebounds Per Game</p>
+                </article>
+                <article class="team-stat-card">
+                    <span>APG</span>
+                    <h3>{{ stats.apg }}</h3>
+                    <p>Assists Per Game</p>
+                </article>
+                <article class="team-stat-card">
+                    <span>FG%</span>
+                    <h3>{{ stats.fg_pct }}%</h3>
+                    <p>Field Goal Percentage</p>
+                </article>
+                <article class="team-stat-card">
+                    <span>3PT%</span>
+                    <h3>{{ stats.fg3_pct }}%</h3>
+                    <p>Three-Point Percentage</p>
+                </article>
+                <article class="team-stat-card">
+                    <span>FT%</span>
+                    <h3>{{ stats.ft_pct }}%</h3>
+                    <p>Free Throw Percentage</p>
+                </article>
+            </div>
+        </section>
+        {% elif stats_error %}
+        <section class="team-stats-unavailable">
+            <h2>Team Statistics</h2>
+            <p>{{ stats_error }}</p>
+        </section>
+        {% endif %}
     </main>
     {% else %}
     <p class="error">{{ error }}</p>

@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Team stats
+- [ ] Team roster
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -38,7 +38,7 @@
 ## Team Features
 - [x] Team pages
 - [x] Team logos page
-- [ ] Team stats
+- [x] Team stats
 - [ ] Team roster
 
 ## Advanced Analytics

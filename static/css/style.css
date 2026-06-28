@@ -1555,3 +1555,125 @@ th {
         padding: 18px;
     }
 }
+
+/* TEAM STATISTICS */
+
+.team-record-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 30px;
+    background: #111827;
+    border: 1px solid #333;
+    border-top: 4px solid #3b82f6;
+    border-radius: 8px;
+}
+
+.team-record-panel > div {
+    padding: 28px 32px;
+}
+
+.team-record-panel > div + div {
+    border-left: 1px solid #333;
+}
+
+.team-record-panel p,
+.team-section-heading p {
+    margin: 0 0 8px;
+    color: #66a3ff;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.team-record-panel h2 {
+    margin: 0 0 6px;
+    font-size: 40px;
+}
+
+.team-record-panel span {
+    color: #bbbbbb;
+    font-size: 15px;
+}
+
+.team-stats-section {
+    margin-top: 34px;
+}
+
+.team-section-heading {
+    margin-bottom: 18px;
+}
+
+.team-section-heading h2 {
+    margin: 0;
+    font-size: 30px;
+}
+
+.team-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.team-stat-card {
+    padding: 24px;
+    background: #111827;
+    border: 1px solid #333;
+    border-radius: 8px;
+}
+
+.team-stat-card > span {
+    color: #66a3ff;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.team-stat-card h3 {
+    margin: 12px 0 6px;
+    font-size: 34px;
+}
+
+.team-stat-card p {
+    margin: 0;
+    color: #bbbbbb;
+    font-size: 15px;
+}
+
+.team-stats-unavailable {
+    margin-top: 30px;
+    padding: 28px;
+    background: #111827;
+    border: 1px solid #333;
+    border-left: 4px solid #ff4d4d;
+    border-radius: 8px;
+}
+
+.team-stats-unavailable h2 {
+    margin-bottom: 8px;
+}
+
+.team-stats-unavailable p {
+    color: #bbbbbb;
+}
+
+@media (max-width: 760px) {
+    .team-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .team-record-panel,
+    .team-stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .team-record-panel > div + div {
+        border-top: 1px solid #333;
+        border-left: 0;
+    }
+
+    .team-record-panel > div,
+    .team-stat-card {
+        padding: 22px;
+    }
+}
