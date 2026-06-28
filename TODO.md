@@ -9,6 +9,8 @@
 ## Homepage
 - [x] ESPN-style hero section
 - [x] Trending Players
+- [x] Data-driven trending players
+- [x] Direct homepage search to player profiles
 - [x] Feature cards
 - [x] Make homepage mobile responsive
 - [x] Add footer
