@@ -169,3 +169,5 @@ Computer Science Student
 The University of Alabama
 
 ---
+
+If you enjoyed this project, consider giving the repository a ⭐.
