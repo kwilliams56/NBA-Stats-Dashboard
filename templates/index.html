@@ -7,7 +7,7 @@
     <title>NBA Stats Dashboard</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/loading.js') }}" defer></script>
 
 </head>
 
@@ -25,17 +25,13 @@
         </div>
     </nav>
 
-    <div class="hero">
+    <main class="hero homepage-hero">
 
-        <div class="hero-badge">
-            🏀 Live NBA Player Analytics
-        </div>
-        <h1>
-            NBA Analytics for the Modern Fan
-        </h1>
+        <div class="hero-badge">NBA Performance Center</div>
+        <h1>NBA Stats, Trends and Matchups</h1>
 
         <p class="hero-subtitle">
-            Search players, explore career trends, compare stars, and visualize NBA performance with live data.
+            Search every player, track recent performance, compare stars, and explore the league.
         </p>
         <div class="hero-tags">
             <span>Live NBA Data</span>
@@ -43,256 +39,100 @@
             <span>Head-to-Head</span>
         </div>
 
-        <form method="POST">
-            <input type="text" name="player_name" placeholder="Enter player name..." required>
-
-            <button type="submit">
-                Search
-            </button>
+        <form method="POST" class="home-search">
+            <label for="homepage-player-search">Search NBA players</label>
+            <div>
+                <input id="homepage-player-search" type="text" name="player_name" placeholder="Player name" required>
+                <button type="submit">Search</button>
+            </div>
         </form>
 
-
+        {% if search_results %}
+        <div class="results-box homepage-results">
+            <div class="homepage-results-header">
+                <span>Search Results</span>
+                <strong>Select a player</strong>
+            </div>
+            <div class="homepage-results-list">
+                {% for result in search_results %}
+                <form method="POST">
+                    <input type="hidden" name="player_id" value="{{ result.id }}">
+                    <button class="result-button" type="submit">{{ result.full_name }}</button>
+                </form>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
 
         <a class="compare-card" href="/compare">
-            <span>📊</span>
-            <strong>Compare Players</strong>
-            <span>→</span>
+            <div class="compare-card-copy">
+                <span>Head-to-Head</span>
+                <strong>Compare Players</strong>
+            </div>
+            <span class="compare-card-arrow" aria-hidden="true">&gt;</span>
         </a>
 
         <section class="trending">
             <div class="section-header">
-                <h2>Trending Players</h2>
-                <p>Quick searches for star players</p>
+                <div>
+                    <span class="section-kicker">Last 5 Games</span>
+                    <h2>Trending Players</h2>
+                </div>
+                <p>Recent scoring leaders, refreshed automatically</p>
             </div>
 
+            {% if trending_players %}
             <div class="trending-grid">
-                <form method="POST">
-                    <input type="hidden" name="player_name" value="Stephen Curry">
-                    <button class="trending-card">Stephen Curry</button>
-                </form>
-
-                <form method="POST">
-                    <input type="hidden" name="player_name" value="LeBron James">
-                    <button class="trending-card">LeBron James</button>
-                </form>
-
-                <form method="POST">
-                    <input type="hidden" name="player_name" value="Anthony Edwards">
-                    <button class="trending-card">Anthony Edwards</button>
-                </form>
-
-                <form method="POST">
-                    <input type="hidden" name="player_name" value="Luka Doncic">
-                    <button class="trending-card">Luka Doncic</button>
-                </form>
+                {% for trending_player in trending_players %}
+                <a class="trending-card" href="{{ url_for('player_profile', player_name=trending_player.name) }}">
+                    <span class="trending-rank">{{ loop.index }}</span>
+                    <img src="{{ trending_player.image_url }}" alt="{{ trending_player.name }} headshot">
+                    <div>
+                        <h3>{{ trending_player.name }}</h3>
+                        <p>{{ trending_player.team }} | {{ trending_player.rpg }} RPG | {{ trending_player.apg }} APG</p>
+                    </div>
+                    <strong>{{ trending_player.ppg }} <small>PPG</small></strong>
+                </a>
+                {% endfor %}
             </div>
+            {% elif trending_error %}
+            <p class="trending-unavailable">{{ trending_error }}</p>
+            {% endif %}
         </section>
         <section class="features">
             <h2>What You Can Do</h2>
 
             <div class="feature-grid">
                 <div class="feature-card">
-                    <span>📈</span>
-                    <h3>Player Stats</h3>
-                    <p>View season and career statistics.</p>
+                    <span>01</span>
+                    <h3>Player Profiles</h3>
+                    <p>Season production, career totals, and performance trends.</p>
                 </div>
 
                 <div class="feature-card">
-                    <span>⚔️</span>
-                    <h3>Compare Players</h3>
-                    <p>Compare players side by side.</p>
+                    <span>02</span>
+                    <h3>Player Comparison</h3>
+                    <p>Head-to-head statistics, charts, and career analysis.</p>
                 </div>
 
                 <div class="feature-card">
-                    <span>⭐</span>
-                    <h3>Favorites</h3>
-                    <p>Save your favorite NBA players.</p>
+                    <span>03</span>
+                    <h3>Team Pages</h3>
+                    <p>Current records, team statistics, and active rosters.</p>
                 </div>
 
                 <div class="feature-card">
-                    <span>🏀</span>
-                    <h3>Team Insights</h3>
-                    <p>Explore team analytics and trends.</p>
+                    <span>04</span>
+                    <h3>League Leaders</h3>
+                    <p>Scoring, shooting, playmaking, and defensive leaders.</p>
                 </div>
             </div>
         </section>
-        {% if search_results %}
-        <div class="results-box">
-            <h3>Select a player:</h3>
-
-            {% for result in search_results %}
-            <form method="POST">
-                <input type="hidden" name="player_id" value="{{ result.id }}">
-                <button class="result-button" type="submit">
-                    {{ result.full_name }}
-                </button>
-            </form>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% if stats %}
-        <a class="player-card-link" href="{{ url_for('player_profile', player_name=player.full_name) }}">
-
-            <div class="player-card">
-                <img src="{{ stats.image_url }}" class="player-image">
-                <h2>{{ player.full_name }}</h2>
-                <p class="team">{{ stats.team_name }}</p>
-                {% if stats.team_logo %}
-                <img src="{{ stats.team_logo }}" class="team-logo">
-                {% endif %}
-
-                <p class="season">{{ stats.season }} Season</p>
-
-                <div class="stat-grid">
-                    <div>
-                        <h3>{{ stats.ppg }}</h3>
-                        <p>PPG</p>
-                    </div>
-
-                    <div>
-                        <h3>{{ stats.rpg }}</h3>
-                        <p>RPG</p>
-                    </div>
-
-                    <div>
-                        <h3>{{ stats.apg }}</h3>
-                        <p>APG</p>
-                    </div>
-
-                    <div>
-                        <h3>{{ stats.games }}</h3>
-                        <p>Games</p>
-                    </div>
-                    <div>
-                        <h3>{{ stats.fg_pct }}%</h3>
-                        <p>FG%</p>
-                    </div>
-
-                    <div>
-                        <h3>{{ stats.fg3_pct }}%</h3>
-                        <p>3PT%</p>
-                    </div>
-                    <div>
-                        <h3>{{ stats.ft_pct }}%</h3>
-                        <p>FT%</p>
-                    </div>
-                    <div class="career-totals">
-                        <h3>Career Totals</h3>
-
-                        <p>🏀 {{ "{:,}".format(stats.career_points) }} Points</p>
-                        <p>💪 {{ "{:,}".format(stats.career_rebounds) }} Rebounds</p>
-                        <p>🎯 {{ "{:,}".format(stats.career_assists) }} Assists</p>
-                    </div>
-                </div>
-
-            </div>
-        </a>
-        {% endif %}
-
-        {% if career_table %}
-        <div class="career-table">
-            <h2>Season-by-Season Stats</h2>
-
-            <table>
-                <tr>
-                    <th>Season</th>
-                    <th>Team</th>
-                    <th>GP</th>
-                    <th>PPG</th>
-                    <th>RPG</th>
-                    <th>APG</th>
-                </tr>
-
-                {% for row in career_table %}
-                <tr>
-                    <td>{{ row.season }}</td>
-                    <td>{{ row.team }}</td>
-                    <td>{{ row.games }}</td>
-                    <td>{{ row.ppg }}</td>
-                    <td>{{ row.rpg }}</td>
-                    <td>{{ row.apg }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-        {% endif %}
-        {% if career_table %}
-        <div class="chart-box">
-            <h2>Points Per Game by Season</h2>
-            <canvas id="ppgChart"></canvas>
-        </div>
-
-        <script>
-            const seasons = {{ career_table | map(attribute = 'season') | list | tojson }};
-            const ppgData = {{ career_table | map(attribute = 'ppg') | list | tojson }};
-
-            const ctx = document.getElementById('ppgChart');
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: seasons,
-                    datasets: [{
-                        label: 'PPG',
-                        data: ppgData,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.18)',
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#3b82f6',
-                        pointBorderWidth: 3,
-                        pointRadius: 4,
-                        pointHoverRadius: 7,
-                        fill: true,
-                        tension: 0.35
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#d1d5db'
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: '#0b0f17',
-                            borderColor: '#3b82f6',
-                            borderWidth: 1,
-                            titleColor: '#ffffff',
-                            bodyColor: '#d1d5db',
-                            displayColors: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: '#bbbbbb'
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.08)'
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#bbbbbb'
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.08)'
-                            }
-                        }
-                    }
-                }
-            });
-        </script>
-        {% endif %}
-
         {% if error %}
         <p class="error">{{ error }}</p>
         {% endif %}
 
-    </div>
+    </main>
 
     <footer class="site-footer">
         <div class="footer-brand">

@@ -4,11 +4,13 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Responsive design
+- [ ] Better error handling
 
 ## Homepage
 - [x] ESPN-style hero section
 - [x] Trending Players
+- [x] Data-driven trending players
+- [x] Direct homepage search to player profiles
 - [x] Feature cards
 - [x] Make homepage mobile responsive
 - [x] Add footer
@@ -49,8 +51,8 @@
 - [x] Defensive leaders
 
 ## Polish
-- [ ] Responsive design
-- [ ] Loading animation
+- [x] Responsive design
+- [x] Loading animation
 - [ ] Better error handling
 - [ ] Better README screenshots
 - [ ] Add GitHub repo description

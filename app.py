@@ -2,10 +2,11 @@ from datetime import datetime
 from functools import lru_cache
 import unicodedata
 
-from flask import Flask, render_template, request
+from flask import Flask, redirect, render_template, request, url_for
 from nba_api.stats.static import players, teams as nba_teams
 from nba_api.stats.endpoints import (
     commonteamroster,
+    leaguedashplayerstats,
     playercareerstats,
     playerprofilev2,
     teamdashboardbygeneralsplits,
@@ -115,9 +116,15 @@ similar_player_pool = [
 
 def normalize_player_name(player_name):
     normalized = unicodedata.normalize("NFKD", player_name)
-    return "".join(
-        character for character in normalized if not unicodedata.combining(character)
-    ).casefold().strip()
+    return (
+        "".join(
+            character
+            for character in normalized
+            if not unicodedata.combining(character)
+        )
+        .casefold()
+        .strip()
+    )
 
 
 def find_matching_players(player_name, player_list):
@@ -322,9 +329,21 @@ def get_league_leaders(limit=5):
         "apg": {"title": "Assists Per Game", "label": "APG", "format": "number"},
         "spg": {"title": "Steals Per Game", "label": "SPG", "format": "number"},
         "bpg": {"title": "Blocks Per Game", "label": "BPG", "format": "number"},
-        "fg_pct": {"title": "Field Goal Percentage", "label": "FG%", "format": "percent"},
-        "fg3_pct": {"title": "Three-Point Percentage", "label": "3PT%", "format": "percent"},
-        "ft_pct": {"title": "Free Throw Percentage", "label": "FT%", "format": "percent"},
+        "fg_pct": {
+            "title": "Field Goal Percentage",
+            "label": "FG%",
+            "format": "percent",
+        },
+        "fg3_pct": {
+            "title": "Three-Point Percentage",
+            "label": "3PT%",
+            "format": "percent",
+        },
+        "ft_pct": {
+            "title": "Free Throw Percentage",
+            "label": "FT%",
+            "format": "percent",
+        },
     }
     player_pool = []
 
@@ -356,18 +375,64 @@ def get_league_leaders(limit=5):
     return leaders
 
 
+@lru_cache(maxsize=8)
+def get_trending_players(season, cache_slot, limit=6):
+    recent_stats = leaguedashplayerstats.LeagueDashPlayerStats(
+        last_n_games=5,
+        league_id_nullable="00",
+        per_mode_detailed="PerGame",
+        season=season,
+        season_type_all_star="Regular Season",
+        timeout=15,
+    ).get_data_frames()[0]
+
+    if recent_stats.empty:
+        return []
+
+    recent_stats = recent_stats[recent_stats["GP"] >= 2]
+    recent_stats = recent_stats.sort_values(
+        by=["PTS", "PLUS_MINUS"],
+        ascending=False,
+    ).head(limit)
+
+    return [
+        {
+            "id": int(player["PLAYER_ID"]),
+            "name": player["PLAYER_NAME"],
+            "team": player["TEAM_ABBREVIATION"],
+            "ppg": round(float(player["PTS"]), 1),
+            "rpg": round(float(player["REB"]), 1),
+            "apg": round(float(player["AST"]), 1),
+            "image_url": (
+                "https://cdn.nba.com/headshots/nba/latest/260x190/"
+                f"{int(player['PLAYER_ID'])}.png"
+            ),
+        }
+        for _, player in recent_stats.iterrows()
+    ]
+
+
 @app.route("/", methods=["GET", "POST"])
 def home():
-    player_info = None
-    stats = None
     error = None
     search_results = []
-    career_table = []
+    trending_players = []
+    trending_error = None
+
+    try:
+        cache_slot = int(datetime.now().timestamp() // 900)
+        trending_players = get_trending_players(
+            get_current_nba_season(),
+            cache_slot,
+        )
+        if not trending_players:
+            trending_error = "No recent player trends are available."
+    except Exception:
+        trending_error = "Recent player trends are temporarily unavailable."
 
     if request.method == "POST":
         player_name = request.form.get("player_name", "").strip()
         selected_player_id = request.form.get("player_id")
-
         all_players = players.get_players()
 
         if selected_player_id:
@@ -381,67 +446,22 @@ def home():
 
         if len(matching_players) > 1 and not selected_player_id:
             search_results = matching_players[:10]
-
         elif len(matching_players) == 1:
-            player_info = matching_players[0]
-            player_id = player_info["id"]
-
-            df = get_regular_season_career(player_id)
-
-            if df is not None and not df.empty:
-                df = df[df["GP"] > 0]
-                career_points = int(df["PTS"].sum())
-                career_rebounds = int(df["REB"].sum())
-                career_assists = int(df["AST"].sum())
-
-                if not df.empty:
-                    latest_season = df.iloc[-1]
-                    games = latest_season["GP"]
-                    team_abbr = latest_season["TEAM_ABBREVIATION"]
-
-                    stats = {
-                        "season": latest_season["SEASON_ID"],
-                        "team_name": team_names.get(team_abbr, team_abbr),
-                        "team_logo": team_logos.get(team_abbr),
-                        "games": games,
-                        "ppg": round(latest_season["PTS"] / games, 1),
-                        "rpg": round(latest_season["REB"] / games, 1),
-                        "apg": round(latest_season["AST"] / games, 1),
-                        "fg_pct": round(latest_season["FG_PCT"] * 100, 1),
-                        "fg3_pct": round(latest_season["FG3_PCT"] * 100, 1),
-                        "ft_pct": round(latest_season["FT_PCT"] * 100, 1),
-                        "image_url": f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png",
-                        "career_points": career_points,
-                        "career_rebounds": career_rebounds,
-                        "career_assists": career_assists,
-                    }
-                    for _, row in df.iterrows():
-                        gp = row["GP"]
-
-                        career_table.append(
-                            {
-                                "season": row["SEASON_ID"],
-                                "team": row["TEAM_ABBREVIATION"],
-                                "games": gp,
-                                "ppg": round(row["PTS"] / gp, 1),
-                                "rpg": round(row["REB"] / gp, 1),
-                                "apg": round(row["AST"] / gp, 1),
-                            }
-                        )
-                else:
-                    error = "Stats not available for this player."
-            else:
-                error = "Stats not available for this player."
+            return redirect(
+                url_for(
+                    "player_profile",
+                    player_name=matching_players[0]["full_name"],
+                )
+            )
         else:
             error = "Player not found. Try another name."
 
     return render_template(
         "index.html",
-        player=player_info,
-        stats=stats,
         error=error,
         search_results=search_results,
-        career_table=career_table,
+        trending_players=trending_players,
+        trending_error=trending_error,
     )
 
 
@@ -620,6 +640,30 @@ def player_profile(player_name):
 
     return render_template(
         "player.html", player=player, similar_players=similar_players, error=None
+    )
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return (
+        render_template(
+            "error.html",
+            title="Page Not Found",
+            message="The page you are looking for does not exist.",
+        ),
+        404,
+    )
+
+
+@app.errorhandler(500)
+def server_error(error):
+    return (
+        render_template(
+            "error.html",
+            title="Something Went Wrong",
+            message="NBA data may be temporarily unavailable. Please try again later.",
+        ),
+        500,
     )
 
 
