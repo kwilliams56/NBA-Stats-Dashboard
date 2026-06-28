@@ -255,6 +255,112 @@
         {% endif %}
 
         {% if player1 and player2 %}
+        <div class="comparison-chart-box">
+            <h2>Career PPG Comparison</h2>
+            <canvas id="careerPpgComparisonChart"></canvas>
+        </div>
+
+        <script>
+            const player1CareerSeasons = {{ player1.career_table | map(attribute = 'season') | list | tojson }};
+            const player1CareerPpg = {{ player1.career_table | map(attribute = 'ppg') | list | tojson }};
+            const player2CareerSeasons = {{ player2.career_table | map(attribute = 'season') | list | tojson }};
+            const player2CareerPpg = {{ player2.career_table | map(attribute = 'ppg') | list | tojson }};
+            const comparisonSeasons = [...new Set([
+                ...player1CareerSeasons,
+                ...player2CareerSeasons
+            ])].sort();
+
+            const player1PpgBySeason = Object.fromEntries(
+                player1CareerSeasons.map((season, index) => [season, player1CareerPpg[index]])
+            );
+            const player2PpgBySeason = Object.fromEntries(
+                player2CareerSeasons.map((season, index) => [season, player2CareerPpg[index]])
+            );
+
+            new Chart(document.getElementById('careerPpgComparisonChart'), {
+                type: 'line',
+                data: {
+                    labels: comparisonSeasons,
+                    datasets: [
+                        {
+                            label: {{ player1.name | tojson }},
+                            data: comparisonSeasons.map(season => player1PpgBySeason[season] ?? null),
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#3b82f6',
+                            pointBorderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            tension: 0.35,
+                            spanGaps: false
+                        },
+                        {
+                            label: {{ player2.name | tojson }},
+                            data: comparisonSeasons.map(season => player2PpgBySeason[season] ?? null),
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.12)',
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#00ff88',
+                            pointBorderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            tension: 0.35,
+                            spanGaps: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#d1d5db'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0b0f17',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            titleColor: '#ffffff',
+                            bodyColor: '#d1d5db',
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' PPG';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#bbbbbb'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.08)'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#bbbbbb'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.08)'
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+        {% endif %}
+
+        {% if player1 and player2 %}
         <div class="comparison-table">
             <h2>Career Totals Comparison</h2>
 
