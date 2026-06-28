@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Better compare page layout
+- [ ] Team stats
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -33,7 +33,7 @@
 - [x] Radar chart
 - [x] Career totals comparison
 - [x] Career PPG comparison chart
-- [ ] Better compare page layout
+- [x] Better compare page layout
 
 ## Team Features
 - [x] Team pages

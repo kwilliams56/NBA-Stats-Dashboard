@@ -24,30 +24,36 @@
         </div>
     </nav>
 
-    <div class="hero">
+    <main class="compare-page">
+        <header class="compare-header">
+            <p class="compare-kicker">NBA Player Comparison</p>
+            <h1>Head-to-Head Matchup</h1>
+            <p>Compare production, efficiency, and career performance across two NBA players.</p>
+        </header>
 
-        <h1>Compare Two NBA Players</h1>
+        <section class="compare-search-panel">
+            <form method="POST" class="compare-search-form">
+                <label>
+                    <span>Player One</span>
+                    <input type="text" name="player1" placeholder="LeBron James" value="{{ request.form.get('player1', '') }}" required>
+                </label>
 
-        <p>
-            Search for two players and compare their career statistics.
-        </p>
+                <span class="search-versus">VS</span>
 
-        <form method="POST">
+                <label>
+                    <span>Player Two</span>
+                    <input type="text" name="player2" placeholder="Kevin Durant" value="{{ request.form.get('player2', '') }}" required>
+                </label>
 
-            <input type="text" name="player1" placeholder="Player 1" required>
-
-            <br><br>
-
-            <input type="text" name="player2" placeholder="Player 2" required>
-
-            <br><br>
-
-            <button>
-                Compare
-            </button>
-
-        </form>
+                <button type="submit">Compare Players</button>
+            </form>
+        </section>
         {% if player1 and player2 %}
+        <section class="compare-matchup">
+            <div class="compare-section-heading">
+                <p>Matchup Overview</p>
+                <h2>{{ player1.name }} vs {{ player2.name }}</h2>
+            </div>
         <div class="compare-results">
             <div class="compare-player-card">
                 <img src="{{ player1.image_url }}" class="player-image">
@@ -99,6 +105,8 @@
                 </div>
             </div>
 
+            <div class="matchup-divider" aria-hidden="true">VS</div>
+
             <div class="compare-player-card">
                 <img src="{{ player2.image_url }}" class="player-image">
                 {% if player2.team_logo %}
@@ -146,8 +154,15 @@
                 </div>
             </div>
         </div>
+        </section>
         {% endif %}
         {% if player1 and player2 %}
+        <section class="compare-analytics">
+            <div class="compare-section-heading">
+                <p>Visual Analysis</p>
+                <h2>Performance Trends</h2>
+            </div>
+            <div class="compare-chart-grid">
         <div class="radar-chart-box">
             <h2>Player Skill Radar</h2>
             <canvas id="comparisonRadarChart"></canvas>
@@ -358,9 +373,17 @@
                 }
             });
         </script>
+            </div>
+        </section>
         {% endif %}
 
         {% if player1 and player2 %}
+        <section class="compare-breakdown">
+            <div class="compare-section-heading">
+                <p>Stat Breakdown</p>
+                <h2>Numbers Side by Side</h2>
+            </div>
+            <div class="comparison-tables-grid">
         <div class="comparison-table">
             <h2>Career Totals Comparison</h2>
 
@@ -438,12 +461,14 @@
                 </tr>
             </table>
         </div>
+            </div>
+        </section>
         {% endif %}
 
         {% if error %}
         <p class="error">{{ error }}</p>
         {% endif %}
-    </div>
+    </main>
 
 </body>
 
