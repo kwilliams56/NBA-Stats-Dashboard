@@ -24,30 +24,36 @@
         </div>
     </nav>
 
-    <div class="hero">
+    <main class="compare-page">
+        <header class="compare-header">
+            <p class="compare-kicker">NBA Player Comparison</p>
+            <h1>Head-to-Head Matchup</h1>
+            <p>Compare production, efficiency, and career performance across two NBA players.</p>
+        </header>
 
-        <h1>Compare Two NBA Players</h1>
+        <section class="compare-search-panel">
+            <form method="POST" class="compare-search-form">
+                <label>
+                    <span>Player One</span>
+                    <input type="text" name="player1" placeholder="LeBron James" value="{{ request.form.get('player1', '') }}" required>
+                </label>
 
-        <p>
-            Search for two players and compare their career statistics.
-        </p>
+                <span class="search-versus">VS</span>
 
-        <form method="POST">
+                <label>
+                    <span>Player Two</span>
+                    <input type="text" name="player2" placeholder="Kevin Durant" value="{{ request.form.get('player2', '') }}" required>
+                </label>
 
-            <input type="text" name="player1" placeholder="Player 1" required>
-
-            <br><br>
-
-            <input type="text" name="player2" placeholder="Player 2" required>
-
-            <br><br>
-
-            <button>
-                Compare
-            </button>
-
-        </form>
+                <button type="submit">Compare Players</button>
+            </form>
+        </section>
         {% if player1 and player2 %}
+        <section class="compare-matchup">
+            <div class="compare-section-heading">
+                <p>Matchup Overview</p>
+                <h2>{{ player1.name }} vs {{ player2.name }}</h2>
+            </div>
         <div class="compare-results">
             <div class="compare-player-card">
                 <img src="{{ player1.image_url }}" class="player-image">
@@ -99,6 +105,8 @@
                 </div>
             </div>
 
+            <div class="matchup-divider" aria-hidden="true">VS</div>
+
             <div class="compare-player-card">
                 <img src="{{ player2.image_url }}" class="player-image">
                 {% if player2.team_logo %}
@@ -146,8 +154,15 @@
                 </div>
             </div>
         </div>
+        </section>
         {% endif %}
         {% if player1 and player2 %}
+        <section class="compare-analytics">
+            <div class="compare-section-heading">
+                <p>Visual Analysis</p>
+                <h2>Performance Trends</h2>
+            </div>
+            <div class="compare-chart-grid">
         <div class="radar-chart-box">
             <h2>Player Skill Radar</h2>
             <canvas id="comparisonRadarChart"></canvas>
@@ -255,6 +270,147 @@
         {% endif %}
 
         {% if player1 and player2 %}
+        <div class="comparison-chart-box">
+            <h2>Career PPG Comparison</h2>
+            <canvas id="careerPpgComparisonChart"></canvas>
+        </div>
+
+        <script>
+            const player1CareerSeasons = {{ player1.career_table | map(attribute = 'season') | list | tojson }};
+            const player1CareerPpg = {{ player1.career_table | map(attribute = 'ppg') | list | tojson }};
+            const player2CareerSeasons = {{ player2.career_table | map(attribute = 'season') | list | tojson }};
+            const player2CareerPpg = {{ player2.career_table | map(attribute = 'ppg') | list | tojson }};
+            const comparisonSeasons = [...new Set([
+                ...player1CareerSeasons,
+                ...player2CareerSeasons
+            ])].sort();
+
+            const player1PpgBySeason = Object.fromEntries(
+                player1CareerSeasons.map((season, index) => [season, player1CareerPpg[index]])
+            );
+            const player2PpgBySeason = Object.fromEntries(
+                player2CareerSeasons.map((season, index) => [season, player2CareerPpg[index]])
+            );
+
+            new Chart(document.getElementById('careerPpgComparisonChart'), {
+                type: 'line',
+                data: {
+                    labels: comparisonSeasons,
+                    datasets: [
+                        {
+                            label: {{ player1.name | tojson }},
+                            data: comparisonSeasons.map(season => player1PpgBySeason[season] ?? null),
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#3b82f6',
+                            pointBorderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            tension: 0.35,
+                            spanGaps: false
+                        },
+                        {
+                            label: {{ player2.name | tojson }},
+                            data: comparisonSeasons.map(season => player2PpgBySeason[season] ?? null),
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.12)',
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#00ff88',
+                            pointBorderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            tension: 0.35,
+                            spanGaps: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#d1d5db'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0b0f17',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            titleColor: '#ffffff',
+                            bodyColor: '#d1d5db',
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' PPG';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#bbbbbb'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.08)'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#bbbbbb'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.08)'
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if player1 and player2 %}
+        <section class="compare-breakdown">
+            <div class="compare-section-heading">
+                <p>Stat Breakdown</p>
+                <h2>Numbers Side by Side</h2>
+            </div>
+            <div class="comparison-tables-grid">
+        <div class="comparison-table">
+            <h2>Career Totals Comparison</h2>
+
+            <table>
+                <tr>
+                    <th>Career Stat</th>
+                    <th>{{ player1.name }}</th>
+                    <th>{{ player2.name }}</th>
+                </tr>
+                <tr>
+                    <td>Points</td>
+                    <td class="{% if player1.career_points > player2.career_points %}winner{% endif %}">{{ "{:,}".format(player1.career_points) }}</td>
+                    <td class="{% if player2.career_points > player1.career_points %}winner{% endif %}">{{ "{:,}".format(player2.career_points) }}</td>
+                </tr>
+                <tr>
+                    <td>Rebounds</td>
+                    <td class="{% if player1.career_rebounds > player2.career_rebounds %}winner{% endif %}">{{ "{:,}".format(player1.career_rebounds) }}</td>
+                    <td class="{% if player2.career_rebounds > player1.career_rebounds %}winner{% endif %}">{{ "{:,}".format(player2.career_rebounds) }}</td>
+                </tr>
+                <tr>
+                    <td>Assists</td>
+                    <td class="{% if player1.career_assists > player2.career_assists %}winner{% endif %}">{{ "{:,}".format(player1.career_assists) }}</td>
+                    <td class="{% if player2.career_assists > player1.career_assists %}winner{% endif %}">{{ "{:,}".format(player2.career_assists) }}</td>
+                </tr>
+            </table>
+        </div>
+
         <div class="comparison-table">
             <h2>Stat Comparison</h2>
 
@@ -305,12 +461,14 @@
                 </tr>
             </table>
         </div>
+            </div>
+        </section>
         {% endif %}
 
         {% if error %}
         <p class="error">{{ error }}</p>
         {% endif %}
-    </div>
+    </main>
 
 </body>
 

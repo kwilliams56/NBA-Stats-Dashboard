@@ -1,8 +1,15 @@
+from datetime import datetime
 from functools import lru_cache
+import unicodedata
 
 from flask import Flask, render_template, request
-from nba_api.stats.static import players
-from nba_api.stats.endpoints import playercareerstats
+from nba_api.stats.static import players, teams as nba_teams
+from nba_api.stats.endpoints import (
+    commonteamroster,
+    playercareerstats,
+    playerprofilev2,
+    teamdashboardbygeneralsplits,
+)
 
 app = Flask(__name__)
 
@@ -106,15 +113,83 @@ similar_player_pool = [
 ]
 
 
+def normalize_player_name(player_name):
+    normalized = unicodedata.normalize("NFKD", player_name)
+    return "".join(
+        character for character in normalized if not unicodedata.combining(character)
+    ).casefold().strip()
+
+
+def find_matching_players(player_name, player_list):
+    normalized_query = normalize_player_name(player_name)
+    exact_matches = [
+        player
+        for player in player_list
+        if normalize_player_name(player["full_name"]) == normalized_query
+    ]
+
+    if exact_matches:
+        return exact_matches
+
+    return [
+        player
+        for player in player_list
+        if normalized_query in normalize_player_name(player["full_name"])
+    ]
+
+
+def get_regular_season_career(player_id):
+    required_columns = {
+        "SEASON_ID",
+        "TEAM_ABBREVIATION",
+        "GP",
+        "PTS",
+        "REB",
+        "AST",
+    }
+    endpoints = [
+        lambda: playercareerstats.PlayerCareerStats(
+            player_id=player_id,
+            league_id_nullable="00",
+            timeout=15,
+        ),
+        lambda: playerprofilev2.PlayerProfileV2(
+            player_id=player_id,
+            league_id_nullable="00",
+            per_mode36="Totals",
+            timeout=15,
+        ),
+    ]
+
+    for create_endpoint in endpoints:
+        try:
+            endpoint = create_endpoint()
+            frames = []
+            regular_season_data = getattr(
+                endpoint,
+                "season_totals_regular_season",
+                None,
+            )
+
+            if regular_season_data is not None:
+                frames.append(regular_season_data.get_data_frame())
+
+            frames.extend(endpoint.get_data_frames())
+
+            for frame in frames:
+                if not frame.empty and required_columns.issubset(frame.columns):
+                    return frame
+        except Exception:
+            continue
+
+    return None
+
+
 @lru_cache(maxsize=128)
 def get_player_stats(player_name):
     all_players = players.get_players()
 
-    matching_players = [
-        player
-        for player in all_players
-        if player_name.lower() in player["full_name"].lower()
-    ]
+    matching_players = find_matching_players(player_name, all_players)
 
     if not matching_players:
         return None
@@ -122,10 +197,9 @@ def get_player_stats(player_name):
     player_info = matching_players[0]
     player_id = player_info["id"]
 
-    career = playercareerstats.PlayerCareerStats(player_id=player_id)
-    df = career.get_data_frames()[0]
+    df = get_regular_season_career(player_id)
 
-    if df.empty:
+    if df is None or df.empty:
         return None
 
     df = df[df["GP"] > 0]
@@ -169,6 +243,8 @@ def get_player_stats(player_name):
         "ppg": round(latest_season["PTS"] / games, 1),
         "rpg": round(latest_season["REB"] / games, 1),
         "apg": round(latest_season["AST"] / games, 1),
+        "spg": round(latest_season["STL"] / games, 1),
+        "bpg": round(latest_season["BLK"] / games, 1),
         "fg_pct": round(latest_season["FG_PCT"] * 100, 1),
         "fg3_pct": round(latest_season["FG3_PCT"] * 100, 1),
         "ft_pct": round(latest_season["FT_PCT"] * 100, 1),
@@ -244,6 +320,8 @@ def get_league_leaders(limit=5):
         "ppg": {"title": "Points Per Game", "label": "PPG", "format": "number"},
         "rpg": {"title": "Rebounds Per Game", "label": "RPG", "format": "number"},
         "apg": {"title": "Assists Per Game", "label": "APG", "format": "number"},
+        "spg": {"title": "Steals Per Game", "label": "SPG", "format": "number"},
+        "bpg": {"title": "Blocks Per Game", "label": "BPG", "format": "number"},
         "fg_pct": {"title": "Field Goal Percentage", "label": "FG%", "format": "percent"},
         "fg3_pct": {"title": "Three-Point Percentage", "label": "3PT%", "format": "percent"},
         "ft_pct": {"title": "Free Throw Percentage", "label": "FT%", "format": "percent"},
@@ -299,11 +377,7 @@ def home():
                 if str(player["id"]) == selected_player_id
             ]
         else:
-            matching_players = [
-                player
-                for player in all_players
-                if player_name.lower() in player["full_name"].lower()
-            ]
+            matching_players = find_matching_players(player_name, all_players)
 
         if len(matching_players) > 1 and not selected_player_id:
             search_results = matching_players[:10]
@@ -312,10 +386,9 @@ def home():
             player_info = matching_players[0]
             player_id = player_info["id"]
 
-            career = playercareerstats.PlayerCareerStats(player_id=player_id)
-            df = career.get_data_frames()[0]
+            df = get_regular_season_career(player_id)
 
-            if not df.empty:
+            if df is not None and not df.empty:
                 df = df[df["GP"] > 0]
                 career_points = int(df["PTS"].sum())
                 career_rebounds = int(df["REB"].sum())
@@ -400,6 +473,82 @@ def league_leaders():
     return render_template("leaders.html", leaders=leaders)
 
 
+def get_current_nba_season():
+    today = datetime.now()
+    start_year = today.year if today.month >= 10 else today.year - 1
+    return f"{start_year}-{str(start_year + 1)[-2:]}"
+
+
+@lru_cache(maxsize=64)
+def get_team_stats(team_id, season):
+    dashboard = teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits(
+        team_id=team_id,
+        season=season,
+        per_mode_detailed="PerGame",
+        timeout=15,
+    )
+    overall = dashboard.get_data_frames()[0]
+
+    if overall.empty:
+        return None
+
+    stats = overall.iloc[0]
+
+    return {
+        "season": season,
+        "games": int(stats["GP"]),
+        "wins": int(stats["W"]),
+        "losses": int(stats["L"]),
+        "win_pct": round(float(stats["W_PCT"]) * 100, 1),
+        "ppg": round(float(stats["PTS"]), 1),
+        "rpg": round(float(stats["REB"]), 1),
+        "apg": round(float(stats["AST"]), 1),
+        "fg_pct": round(float(stats["FG_PCT"]) * 100, 1),
+        "fg3_pct": round(float(stats["FG3_PCT"]) * 100, 1),
+        "ft_pct": round(float(stats["FT_PCT"]) * 100, 1),
+    }
+
+
+@lru_cache(maxsize=64)
+def get_team_roster(team_id, season):
+    response = commonteamroster.CommonTeamRoster(
+        team_id=team_id,
+        season=season,
+        league_id_nullable="00",
+        timeout=15,
+    )
+    roster_data = response.get_data_frames()[0]
+    roster = []
+
+    def clean_value(value):
+        if value is None or value != value or not str(value).strip():
+            return "--"
+        return str(value)
+
+    for _, player in roster_data.iterrows():
+        age = clean_value(player.get("AGE"))
+        age = str(int(float(age))) if age != "--" else age
+
+        roster.append(
+            {
+                "id": int(player["PLAYER_ID"]),
+                "name": player["PLAYER"],
+                "number": clean_value(player.get("NUM")),
+                "position": clean_value(player.get("POSITION")),
+                "height": clean_value(player.get("HEIGHT")),
+                "weight": clean_value(player.get("WEIGHT")),
+                "age": age,
+                "experience": clean_value(player.get("EXP")),
+                "image_url": (
+                    "https://cdn.nba.com/headshots/nba/latest/260x190/"
+                    f"{int(player['PLAYER_ID'])}.png"
+                ),
+            }
+        )
+
+    return roster
+
+
 @app.route("/teams")
 def teams():
     team_list = [
@@ -421,13 +570,43 @@ def team_profile(team_abbr):
     if team_abbr not in team_names:
         return render_template("team.html", team=None, error="Team not found.")
 
+    nba_team = nba_teams.find_team_by_abbreviation(team_abbr)
     team = {
+        "id": nba_team["id"] if nba_team else None,
         "abbr": team_abbr,
         "name": team_names[team_abbr],
         "logo": team_logos.get(team_abbr),
     }
+    stats = None
+    stats_error = None
+    roster = []
+    roster_error = None
 
-    return render_template("team.html", team=team, error=None)
+    season = get_current_nba_season()
+
+    if team["id"]:
+        try:
+            stats = get_team_stats(team["id"], season)
+        except Exception:
+            stats_error = "Team statistics are temporarily unavailable."
+
+        try:
+            roster = get_team_roster(team["id"], season)
+        except Exception:
+            roster_error = "Team roster is temporarily unavailable."
+    else:
+        stats_error = "Team statistics are temporarily unavailable."
+        roster_error = "Team roster is temporarily unavailable."
+
+    return render_template(
+        "team.html",
+        team=team,
+        stats=stats,
+        stats_error=stats_error,
+        roster=roster,
+        roster_error=roster_error,
+        error=None,
+    )
 
 
 @app.route("/player/<player_name>")

@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Career totals comparison
+- [ ] Responsive design
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -31,22 +31,22 @@
 - [x] Winner highlighting
 - [x] Shooting percentages
 - [x] Radar chart
-- [ ] Career totals comparison
-- [ ] Career PPG comparison chart
-- [ ] Better compare page layout
+- [x] Career totals comparison
+- [x] Career PPG comparison chart
+- [x] Better compare page layout
 
 ## Team Features
 - [x] Team pages
 - [x] Team logos page
-- [ ] Team stats
-- [ ] Team roster
+- [x] Team stats
+- [x] Team roster
 
 ## Advanced Analytics
 - [x] League leaders
 - [x] Best shooters
 - [x] Top scorers
 - [x] Top passers
-- [ ] Defensive leaders
+- [x] Defensive leaders
 
 ## Polish
 - [ ] Responsive design
