@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Defensive leaders
+- [ ] Responsive design
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -46,7 +46,7 @@
 - [x] Best shooters
 - [x] Top scorers
 - [x] Top passers
-- [ ] Defensive leaders
+- [x] Defensive leaders
 
 ## Polish
 - [ ] Responsive design
