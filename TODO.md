@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Career totals comparison
+- [ ] Career PPG comparison chart
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -31,7 +31,7 @@
 - [x] Winner highlighting
 - [x] Shooting percentages
 - [x] Radar chart
-- [ ] Career totals comparison
+- [x] Career totals comparison
 - [ ] Career PPG comparison chart
 - [ ] Better compare page layout
 

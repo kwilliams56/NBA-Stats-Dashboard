@@ -256,6 +256,33 @@
 
         {% if player1 and player2 %}
         <div class="comparison-table">
+            <h2>Career Totals Comparison</h2>
+
+            <table>
+                <tr>
+                    <th>Career Stat</th>
+                    <th>{{ player1.name }}</th>
+                    <th>{{ player2.name }}</th>
+                </tr>
+                <tr>
+                    <td>Points</td>
+                    <td class="{% if player1.career_points > player2.career_points %}winner{% endif %}">{{ "{:,}".format(player1.career_points) }}</td>
+                    <td class="{% if player2.career_points > player1.career_points %}winner{% endif %}">{{ "{:,}".format(player2.career_points) }}</td>
+                </tr>
+                <tr>
+                    <td>Rebounds</td>
+                    <td class="{% if player1.career_rebounds > player2.career_rebounds %}winner{% endif %}">{{ "{:,}".format(player1.career_rebounds) }}</td>
+                    <td class="{% if player2.career_rebounds > player1.career_rebounds %}winner{% endif %}">{{ "{:,}".format(player2.career_rebounds) }}</td>
+                </tr>
+                <tr>
+                    <td>Assists</td>
+                    <td class="{% if player1.career_assists > player2.career_assists %}winner{% endif %}">{{ "{:,}".format(player1.career_assists) }}</td>
+                    <td class="{% if player2.career_assists > player1.career_assists %}winner{% endif %}">{{ "{:,}".format(player2.career_assists) }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="comparison-table">
             <h2>Stat Comparison</h2>
 
             <table>
