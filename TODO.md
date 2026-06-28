@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Loading animation
+- [ ] Better error handling
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -52,7 +52,7 @@
 
 ## Polish
 - [x] Responsive design
-- [ ] Loading animation
+- [x] Loading animation
 - [ ] Better error handling
 - [ ] Better README screenshots
 - [ ] Add GitHub repo description

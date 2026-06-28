@@ -2486,3 +2486,97 @@ canvas {
         border-radius: 8px;
     }
 }
+
+/* SHARED LOADING STATE */
+
+.app-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(5, 8, 14, 0.78);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.app-loader.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.app-loader-panel {
+    width: min(100%, 340px);
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #111827;
+    border: 1px solid #333;
+    border-left: 4px solid #3b82f6;
+    border-radius: 6px;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.4);
+}
+
+.app-loader-mark {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border: 3px solid rgba(255, 255, 255, 0.16);
+    border-top-color: #3b82f6;
+    border-right-color: #00c875;
+    border-radius: 50%;
+    animation: app-loader-spin 0.8s linear infinite;
+}
+
+.app-loader-panel div {
+    min-width: 0;
+}
+
+.app-loader-panel strong,
+.app-loader-panel div > span {
+    display: block;
+}
+
+.app-loader-panel strong {
+    margin-bottom: 4px;
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.app-loader-panel div > span {
+    color: #bbbbbb;
+    font-size: 13px;
+}
+
+body[aria-busy="true"] {
+    cursor: progress;
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: 0.72;
+}
+
+@keyframes app-loader-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-loader,
+    .app-loader-mark {
+        animation: none;
+        transition: none;
+    }
+
+    .app-loader-mark {
+        border-color: #3b82f6;
+    }
+}
