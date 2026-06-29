@@ -27,6 +27,10 @@
             <p>Top performers across scoring, rebounding, playmaking, defense, and shooting categories.</p>
         </section>
 
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+
         <section class="leaders-grid">
             {% for category in leaders %}
             <article class="leader-board">
