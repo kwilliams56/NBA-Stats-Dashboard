@@ -28,6 +28,7 @@
 - [x] Add FG%, 3PT%, FT% chart
 - [x] Add career totals cards
 - [x] Player awards and accomplishments
+- [x] Current and historical player stat compatibility
 
 ## Compare Page
 - [x] Compare two players
