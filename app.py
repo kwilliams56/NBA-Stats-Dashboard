@@ -1,5 +1,7 @@
 from datetime import datetime
-from functools import lru_cache
+from functools import wraps
+import threading
+import time
 import unicodedata
 
 from flask import Flask, redirect, render_template, request, url_for
@@ -7,12 +9,70 @@ from nba_api.stats.static import players, teams as nba_teams
 from nba_api.stats.endpoints import (
     commonteamroster,
     leaguedashplayerstats,
+    playerawards,
     playercareerstats,
     playerprofilev2,
     teamdashboardbygeneralsplits,
 )
 
 app = Flask(__name__)
+
+CACHE_TTL_SECONDS = 15 * 60
+
+
+def ttl_cache(ttl_seconds=CACHE_TTL_SECONDS):
+    def decorator(function):
+        cache = {}
+        key_locks = {}
+        cache_lock = threading.Lock()
+
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            key = (args, tuple(sorted(kwargs.items())))
+            now = time.monotonic()
+
+            with cache_lock:
+                cached = cache.get(key)
+                if cached and cached["expires_at"] > now:
+                    return cached["value"]
+                key_lock = key_locks.setdefault(key, threading.Lock())
+
+            try:
+                with key_lock:
+                    now = time.monotonic()
+
+                    with cache_lock:
+                        cached = cache.get(key)
+                        if cached and cached["expires_at"] > now:
+                            return cached["value"]
+
+                    value = function(*args, **kwargs)
+
+                    if value is not None:
+                        with cache_lock:
+                            expired_keys = [
+                                cached_key
+                                for cached_key, entry in cache.items()
+                                if entry["expires_at"] <= now
+                            ]
+                            for expired_key in expired_keys:
+                                cache.pop(expired_key, None)
+
+                            cache[key] = {
+                                "expires_at": now + ttl_seconds,
+                                "value": value,
+                            }
+
+                    return value
+            finally:
+                with cache_lock:
+                    key_locks.pop(key, None)
+
+        wrapper.cache_clear = cache.clear
+        return wrapper
+
+    return decorator
+
 
 team_names = {
     "ATL": "Atlanta Hawks",
@@ -192,7 +252,7 @@ def get_regular_season_career(player_id):
     return None
 
 
-@lru_cache(maxsize=128)
+@ttl_cache()
 def get_player_stats(player_name):
     all_players = players.get_players()
 
@@ -263,6 +323,68 @@ def get_player_stats(player_name):
     }
 
 
+@ttl_cache()
+def get_player_awards(player_id):
+    awards_data = playerawards.PlayerAwards(
+        player_id=player_id,
+        timeout=15,
+    ).get_data_frames()[0]
+
+    categories = {
+        "championships": {
+            "label": "NBA Championships",
+            "short_label": "Titles",
+            "matches": lambda description: "nba champion" in description,
+        },
+        "mvps": {
+            "label": "Most Valuable Player",
+            "short_label": "MVPs",
+            "matches": lambda description: description
+            == "nba most valuable player",
+        },
+        "all_stars": {
+            "label": "NBA All-Star",
+            "short_label": "All-Star",
+            "matches": lambda description: description == "nba all-star",
+        },
+        "all_nba": {
+            "label": "All-NBA Teams",
+            "short_label": "All-NBA",
+            "matches": lambda description: "all-nba" in description,
+        },
+    }
+    accomplishments = []
+
+    for key, category in categories.items():
+        matching_rows = []
+
+        for _, award in awards_data.iterrows():
+            description = str(award.get("DESCRIPTION") or "").casefold().strip()
+            if category["matches"](description):
+                matching_rows.append(award)
+
+        seasons = sorted(
+            {
+                str(award.get("SEASON"))
+                for award in matching_rows
+                if award.get("SEASON") is not None
+                and str(award.get("SEASON")).lower() != "nan"
+            },
+            reverse=True,
+        )
+        accomplishments.append(
+            {
+                "key": key,
+                "label": category["label"],
+                "short_label": category["short_label"],
+                "count": len(matching_rows),
+                "seasons": seasons,
+            }
+        )
+
+    return accomplishments
+
+
 def get_similarity_score(player, candidate):
     stat_weights = {
         "ppg": (30, 3.0),
@@ -296,7 +418,13 @@ def get_similarity_tags(player, candidate):
     return [label for label, _ in sorted(differences, key=lambda item: item[1])[:2]]
 
 
-def get_similar_players(player, limit=4):
+@ttl_cache()
+def get_similar_players(player_name, limit=4):
+    player = get_player_stats(player_name)
+
+    if not player:
+        return []
+
     matches = []
 
     for candidate_name in similar_player_pool:
@@ -322,6 +450,7 @@ def get_similar_players(player, limit=4):
     ]
 
 
+@ttl_cache()
 def get_league_leaders(limit=5):
     leader_categories = {
         "ppg": {"title": "Points Per Game", "label": "PPG", "format": "number"},
@@ -375,8 +504,8 @@ def get_league_leaders(limit=5):
     return leaders
 
 
-@lru_cache(maxsize=8)
-def get_trending_players(season, cache_slot, limit=6):
+@ttl_cache()
+def get_trending_players(season, limit=6):
     recent_stats = leaguedashplayerstats.LeagueDashPlayerStats(
         last_n_games=5,
         league_id_nullable="00",
@@ -420,11 +549,7 @@ def home():
     trending_error = None
 
     try:
-        cache_slot = int(datetime.now().timestamp() // 900)
-        trending_players = get_trending_players(
-            get_current_nba_season(),
-            cache_slot,
-        )
+        trending_players = get_trending_players(get_current_nba_season())
         if not trending_players:
             trending_error = "No recent player trends are available."
     except Exception:
@@ -499,7 +624,7 @@ def get_current_nba_season():
     return f"{start_year}-{str(start_year + 1)[-2:]}"
 
 
-@lru_cache(maxsize=64)
+@ttl_cache()
 def get_team_stats(team_id, season):
     dashboard = teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits(
         team_id=team_id,
@@ -529,7 +654,7 @@ def get_team_stats(team_id, season):
     }
 
 
-@lru_cache(maxsize=64)
+@ttl_cache()
 def get_team_roster(team_id, season):
     response = commonteamroster.CommonTeamRoster(
         team_id=team_id,
@@ -567,6 +692,11 @@ def get_team_roster(team_id, season):
         )
 
     return roster
+
+
+@app.route("/favorites")
+def favorites():
+    return render_template("favorites.html")
 
 
 @app.route("/teams")
@@ -634,12 +764,29 @@ def player_profile(player_name):
     player = get_player_stats(player_name)
 
     if not player:
-        return render_template("player.html", player=None, error="Player not found.")
+        return (
+            render_template("player.html", player=None, error="Player not found."),
+            404,
+        )
 
-    similar_players = get_similar_players(player)
+    awards = []
+    awards_error = None
+
+    try:
+        awards = get_player_awards(player["id"])
+    except Exception:
+        app.logger.exception("Unable to load awards for player %s", player["id"])
+        awards_error = "Player accomplishments are temporarily unavailable."
+
+    similar_players = get_similar_players(player["name"])
 
     return render_template(
-        "player.html", player=player, similar_players=similar_players, error=None
+        "player.html",
+        player=player,
+        awards=awards,
+        awards_error=awards_error,
+        similar_players=similar_players,
+        error=None,
     )
 
 

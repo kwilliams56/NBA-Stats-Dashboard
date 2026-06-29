@@ -22,6 +22,7 @@ A modern NBA analytics web application built with **Python, Flask, nba_api, Pand
 - Season-by-season career statistics
 - Career PPG chart
 - Similar Players recommendations
+- Player awards and accomplishments
 
 ### ⚔️ Player Comparison
 - Side-by-side player comparison
@@ -40,7 +41,7 @@ A modern NBA analytics web application built with **Python, Flask, nba_api, Pand
 ### 📊 League Analytics
 - League leaders
 - Trending players
-- Favorites system
+- Browser-persistent favorites system
 - Interactive charts
 - Responsive ESPN-inspired interface
 
@@ -152,7 +153,6 @@ http://127.0.0.1:5000
 
 # 🎯 Future Improvements
 
-- Player awards and achievements
 - Advanced analytics
 - Playoff statistics
 - Team vs. Team comparisons

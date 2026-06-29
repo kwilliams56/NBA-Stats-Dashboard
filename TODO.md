@@ -26,6 +26,7 @@
 - [x] Better chart styling
 - [x] Add FG%, 3PT%, FT% chart
 - [x] Add career totals cards
+- [x] Player awards and accomplishments
 
 ## Compare Page
 - [x] Compare two players
@@ -49,6 +50,12 @@
 - [x] Top scorers
 - [x] Top passers
 - [x] Defensive leaders
+
+## Favorites
+- [x] Browser-persistent player favorites
+
+## Performance
+- [x] Fifteen-minute NBA API caching
 
 ## Polish
 - [x] Responsive design
