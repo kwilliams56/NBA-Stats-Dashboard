@@ -772,6 +772,11 @@ def favorites():
     return render_template("favorites.html")
 
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
 @app.route("/teams")
 def teams():
     team_list = [
