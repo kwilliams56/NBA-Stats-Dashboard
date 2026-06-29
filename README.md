@@ -6,7 +6,7 @@ A modern NBA analytics web application built with **Python, Flask, nba_api, Pand
 
 ## 🌐 Live Demo
 
-**Coming Soon** (Will be updated after Render deployment.)
+🚀 **Live Application:** https://nba-stats-dashboard.onrender.com
 
 ---
 
