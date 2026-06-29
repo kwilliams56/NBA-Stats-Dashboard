@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | NBA Analytics Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/loading.js') }}" defer></script>
+</head>
+
+<body>
+    <nav>
+        <h2>NBA<span>Stats</span></h2>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/compare">Compare</a>
+            <a href="{{ url_for('teams') }}">Teams</a>
+            <a href="{{ url_for('league_leaders') }}">Leaders</a>
+            <a href="{{ url_for('favorites') }}">Favorites</a>
+            <a href="{{ url_for('about') }}" aria-current="page">About</a>
+        </div>
+    </nav>
+
+    <main class="about-page">
+        <header class="about-header">
+            <span class="section-kicker">About The Project</span>
+            <h1>NBA Analytics Dashboard</h1>
+            <p>NBA Analytics Dashboard was designed and developed by Kravion Williams, a Computer Science student at the University of Alabama.</p>
+        </header>
+
+        <img class="about-preview" src="{{ url_for('static', filename='images/dashboard-preview.png') }}" alt="NBA Analytics Dashboard homepage">
+
+        <section class="about-story">
+            <div>
+                <span class="section-kicker">The Developer</span>
+                <h2>Kravion Williams</h2>
+                <p>This project was created to turn NBA data into a fast, approachable sports experience while demonstrating full-stack development, API integration, data processing, and responsive interface design.</p>
+            </div>
+            <div>
+                <span class="section-kicker">Education</span>
+                <h2>University of Alabama</h2>
+                <p>Computer Science student building practical applications that combine software engineering, data, and thoughtful user experiences.</p>
+            </div>
+        </section>
+
+        <section class="about-stack">
+            <div class="section-header">
+                <div>
+                    <span class="section-kicker">Built With</span>
+                    <h2>Technology Stack</h2>
+                </div>
+            </div>
+            <div class="about-tech-list">
+                <span>Python</span>
+                <span>Flask</span>
+                <span>NBA API</span>
+                <span>Pandas</span>
+                <span>Chart.js</span>
+                <span>HTML &amp; CSS</span>
+                <span>Render</span>
+            </div>
+        </section>
+
+        <section class="about-contact">
+            <div>
+                <span class="section-kicker">Connect</span>
+                <h2>See more of my work</h2>
+            </div>
+            <div class="about-contact-links">
+                <a href="https://github.com/kwilliams56" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a href="https://www.linkedin.com/in/kravion-williams-b0359737a/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>

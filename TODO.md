@@ -61,6 +61,7 @@
 - [x] Graceful stale-cache fallback for NBA API failures
 
 ## Polish
+- [x] Portfolio footer and About page
 - [x] Responsive design
 - [x] Loading animation
 - [ ] Better error handling
