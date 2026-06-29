@@ -64,6 +64,23 @@
         </div>
         {% endif %}
 
+        {% if suggested_players %}
+        <div class="results-box homepage-results suggestion-panel">
+            <div class="homepage-results-header">
+                <span>Search Help</span>
+                <strong>No exact match found. Did you mean:</strong>
+            </div>
+            <div class="homepage-results-list suggestion-list">
+                {% for suggestion in suggested_players %}
+                <a class="suggestion-link" href="{{ url_for('player_profile', player_name=suggestion.full_name) }}">
+                    <span>{{ suggestion.full_name }}</span>
+                    <span aria-hidden="true">&gt;</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <a class="compare-card" href="/compare">
             <div class="compare-card-copy">
                 <span>Head-to-Head</span>

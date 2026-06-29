@@ -2187,6 +2187,28 @@ th {
     color: #66a3ff;
 }
 
+.suggestion-panel {
+    border-left: 4px solid #3b82f6;
+}
+
+.suggestion-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 46px;
+    padding: 10px 16px;
+    background: #111827;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.suggestion-link:hover {
+    background: #172033;
+    color: #66a3ff;
+}
+
 @media (max-width: 520px) {
     .homepage-results-list {
         grid-template-columns: 1fr;

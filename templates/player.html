@@ -153,6 +153,8 @@
                 {% endfor %}
             </div>
         </section>
+        {% elif similar_error %}
+        <p class="awards-unavailable">{{ similar_error }}</p>
         {% endif %}
 
         <div class="chart-box">

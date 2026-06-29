@@ -11,6 +11,7 @@
 - [x] Trending Players
 - [x] Data-driven trending players
 - [x] Direct homepage search to player profiles
+- [x] Fuzzy player search with Did You Mean suggestions
 - [x] Feature cards
 - [x] Make homepage mobile responsive
 - [x] Add footer
@@ -56,6 +57,7 @@
 
 ## Performance
 - [x] Fifteen-minute NBA API caching
+- [x] Graceful stale-cache fallback for NBA API failures
 
 ## Polish
 - [x] Responsive design

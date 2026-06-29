@@ -1,4 +1,5 @@
 from datetime import datetime
+from difflib import get_close_matches
 from functools import wraps
 import threading
 import time
@@ -18,6 +19,7 @@ from nba_api.stats.endpoints import (
 app = Flask(__name__)
 
 CACHE_TTL_SECONDS = 15 * 60
+NBA_API_TIMEOUT_SECONDS = 5
 
 
 def ttl_cache(ttl_seconds=CACHE_TTL_SECONDS):
@@ -30,11 +32,14 @@ def ttl_cache(ttl_seconds=CACHE_TTL_SECONDS):
         def wrapper(*args, **kwargs):
             key = (args, tuple(sorted(kwargs.items())))
             now = time.monotonic()
+            stale_value = None
 
             with cache_lock:
                 cached = cache.get(key)
                 if cached and cached["expires_at"] > now:
                     return cached["value"]
+                if cached:
+                    stale_value = cached["value"]
                 key_lock = key_locks.setdefault(key, threading.Lock())
 
             try:
@@ -46,7 +51,16 @@ def ttl_cache(ttl_seconds=CACHE_TTL_SECONDS):
                         if cached and cached["expires_at"] > now:
                             return cached["value"]
 
-                    value = function(*args, **kwargs)
+                    try:
+                        value = function(*args, **kwargs)
+                    except Exception:
+                        if stale_value is not None:
+                            app.logger.warning(
+                                "Using stale cached data for %s after NBA API failure",
+                                function.__name__,
+                            )
+                            return stale_value
+                        raise
 
                     if value is not None:
                         with cache_lock:
@@ -205,6 +219,21 @@ def find_matching_players(player_name, player_list):
     ]
 
 
+def get_player_suggestions(player_name, player_list, limit=3):
+    normalized_players = {
+        normalize_player_name(player["full_name"]): player
+        for player in player_list
+    }
+    closest_names = get_close_matches(
+        normalize_player_name(player_name),
+        normalized_players.keys(),
+        n=limit,
+        cutoff=0.6,
+    )
+    return [normalized_players[name] for name in closest_names]
+
+
+@ttl_cache()
 def get_regular_season_career(player_id):
     required_columns = {
         "SEASON_ID",
@@ -218,15 +247,16 @@ def get_regular_season_career(player_id):
         lambda: playercareerstats.PlayerCareerStats(
             player_id=player_id,
             league_id_nullable="00",
-            timeout=15,
+            timeout=NBA_API_TIMEOUT_SECONDS,
         ),
         lambda: playerprofilev2.PlayerProfileV2(
             player_id=player_id,
             league_id_nullable="00",
             per_mode36="Totals",
-            timeout=15,
+            timeout=NBA_API_TIMEOUT_SECONDS,
         ),
     ]
+    last_error = None
 
     for create_endpoint in endpoints:
         try:
@@ -246,8 +276,12 @@ def get_regular_season_career(player_id):
             for frame in frames:
                 if not frame.empty and required_columns.issubset(frame.columns):
                     return frame
-        except Exception:
+        except Exception as error:
+            last_error = error
             continue
+
+    if last_error is not None:
+        raise last_error
 
     return None
 
@@ -327,7 +361,7 @@ def get_player_stats(player_name):
 def get_player_awards(player_id):
     awards_data = playerawards.PlayerAwards(
         player_id=player_id,
-        timeout=15,
+        timeout=NBA_API_TIMEOUT_SECONDS,
     ).get_data_frames()[0]
 
     categories = {
@@ -426,14 +460,20 @@ def get_similar_players(player_name, limit=4):
         return []
 
     matches = []
+    request_failed = False
+    deadline = time.monotonic() + 8
 
     for candidate_name in similar_player_pool:
+        if time.monotonic() >= deadline:
+            request_failed = True
+            break
         if candidate_name.lower() == player["name"].lower():
             continue
 
         try:
             candidate = get_player_stats(candidate_name)
         except Exception:
+            request_failed = True
             continue
 
         if not candidate:
@@ -444,6 +484,9 @@ def get_similar_players(player_name, limit=4):
         candidate["similarity_score"] = max(0, round(100 - (score * 12), 0))
         candidate["similarity_tags"] = get_similarity_tags(player, candidate)
         matches.append(candidate)
+
+    if not matches and request_failed:
+        raise RuntimeError("Unable to load similar player data")
 
     return sorted(matches, key=lambda match: match["similarity_score"], reverse=True)[
         :limit
@@ -512,7 +555,7 @@ def get_trending_players(season, limit=6):
         per_mode_detailed="PerGame",
         season=season,
         season_type_all_star="Regular Season",
-        timeout=15,
+        timeout=NBA_API_TIMEOUT_SECONDS,
     ).get_data_frames()[0]
 
     if recent_stats.empty:
@@ -545,6 +588,7 @@ def get_trending_players(season, limit=6):
 def home():
     error = None
     search_results = []
+    suggested_players = []
     trending_players = []
     trending_error = None
 
@@ -578,6 +622,10 @@ def home():
                     player_name=matching_players[0]["full_name"],
                 )
             )
+        elif not selected_player_id:
+            suggested_players = get_player_suggestions(player_name, all_players)
+            if not suggested_players:
+                error = "Player not found. Try another name."
         else:
             error = "Player not found. Try another name."
 
@@ -585,6 +633,7 @@ def home():
         "index.html",
         error=error,
         search_results=search_results,
+        suggested_players=suggested_players,
         trending_players=trending_players,
         trending_error=trending_error,
     )
@@ -600,11 +649,15 @@ def compare():
         player1_name = request.form.get("player1", "").strip()
         player2_name = request.form.get("player2", "").strip()
 
-        player1 = get_player_stats(player1_name)
-        player2 = get_player_stats(player2_name)
-
-        if not player1 or not player2:
-            error = "One or both players could not be found."
+        try:
+            player1 = get_player_stats(player1_name)
+            player2 = get_player_stats(player2_name)
+        except Exception:
+            app.logger.exception("Unable to load player comparison")
+            error = "Player stats are temporarily unavailable. Please try again."
+        else:
+            if not player1 or not player2:
+                error = "One or both players could not be found."
 
     return render_template(
         "compare.html", player1=player1, player2=player2, error=error
@@ -613,9 +666,16 @@ def compare():
 
 @app.route("/leaders")
 def league_leaders():
-    leaders = get_league_leaders()
+    error = None
 
-    return render_template("leaders.html", leaders=leaders)
+    try:
+        leaders = get_league_leaders()
+    except Exception:
+        app.logger.exception("Unable to load league leaders")
+        leaders = []
+        error = "League leaders are temporarily unavailable. Please try again."
+
+    return render_template("leaders.html", leaders=leaders, error=error)
 
 
 def get_current_nba_season():
@@ -630,7 +690,7 @@ def get_team_stats(team_id, season):
         team_id=team_id,
         season=season,
         per_mode_detailed="PerGame",
-        timeout=15,
+        timeout=NBA_API_TIMEOUT_SECONDS,
     )
     overall = dashboard.get_data_frames()[0]
 
@@ -660,7 +720,7 @@ def get_team_roster(team_id, season):
         team_id=team_id,
         season=season,
         league_id_nullable="00",
-        timeout=15,
+        timeout=NBA_API_TIMEOUT_SECONDS,
     )
     roster_data = response.get_data_frames()[0]
     roster = []
@@ -761,7 +821,15 @@ def team_profile(team_abbr):
 
 @app.route("/player/<player_name>")
 def player_profile(player_name):
-    player = get_player_stats(player_name)
+    try:
+        player = get_player_stats(player_name)
+    except Exception:
+        app.logger.exception("Unable to load stats for player %s", player_name)
+        return render_template(
+            "player.html",
+            player=None,
+            error="Player stats are temporarily unavailable. Please try again.",
+        )
 
     if not player:
         return (
@@ -778,7 +846,14 @@ def player_profile(player_name):
         app.logger.exception("Unable to load awards for player %s", player["id"])
         awards_error = "Player accomplishments are temporarily unavailable."
 
-    similar_players = get_similar_players(player["name"])
+    similar_error = None
+
+    try:
+        similar_players = get_similar_players(player["name"])
+    except Exception:
+        app.logger.exception("Unable to load similar players for %s", player["id"])
+        similar_players = []
+        similar_error = "Similar players are temporarily unavailable."
 
     return render_template(
         "player.html",
@@ -786,6 +861,7 @@ def player_profile(player_name):
         awards=awards,
         awards_error=awards_error,
         similar_players=similar_players,
+        similar_error=similar_error,
         error=None,
     )
 
