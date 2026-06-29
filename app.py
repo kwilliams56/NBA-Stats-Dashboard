@@ -20,6 +20,7 @@ app = Flask(__name__)
 
 CACHE_TTL_SECONDS = 15 * 60
 NBA_API_TIMEOUT_SECONDS = 5
+CAREER_API_TIMEOUT_SECONDS = 10
 
 
 def ttl_cache(ttl_seconds=CACHE_TTL_SECONDS):
@@ -233,6 +234,21 @@ def get_player_suggestions(player_name, player_list, limit=3):
     return [normalized_players[name] for name in closest_names]
 
 
+def safe_float(value, default=0.0):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return default
+
+    return default if number != number else number
+
+
+def safe_text(value, default="NBA"):
+    if value is None or value != value or not str(value).strip():
+        return default
+    return str(value)
+
+
 @ttl_cache()
 def get_regular_season_career(player_id):
     required_columns = {
@@ -247,7 +263,7 @@ def get_regular_season_career(player_id):
         lambda: playercareerstats.PlayerCareerStats(
             player_id=player_id,
             league_id_nullable="00",
-            timeout=NBA_API_TIMEOUT_SECONDS,
+            timeout=CAREER_API_TIMEOUT_SECONDS,
         ),
         lambda: playerprofilev2.PlayerProfileV2(
             player_id=player_id,
@@ -256,9 +272,7 @@ def get_regular_season_career(player_id):
             timeout=NBA_API_TIMEOUT_SECONDS,
         ),
     ]
-    last_error = None
-
-    for create_endpoint in endpoints:
+    for endpoint_index, create_endpoint in enumerate(endpoints):
         try:
             endpoint = create_endpoint()
             frames = []
@@ -276,12 +290,10 @@ def get_regular_season_career(player_id):
             for frame in frames:
                 if not frame.empty and required_columns.issubset(frame.columns):
                     return frame
-        except Exception as error:
-            last_error = error
+        except Exception:
+            if endpoint_index == 0:
+                raise
             continue
-
-    if last_error is not None:
-        raise last_error
 
     return None
 
@@ -303,34 +315,35 @@ def get_player_stats(player_name):
     if df is None or df.empty:
         return None
 
-    df = df[df["GP"] > 0]
-    career_points = int(df["PTS"].sum())
-    career_rebounds = int(df["REB"].sum())
-    career_assists = int(df["AST"].sum())
+    df = df[df["GP"].apply(safe_float) > 0]
 
     if df.empty:
         return None
 
+    career_points = int(sum(safe_float(value) for value in df["PTS"]))
+    career_rebounds = int(sum(safe_float(value) for value in df["REB"]))
+    career_assists = int(sum(safe_float(value) for value in df["AST"]))
+
     latest_season = df.iloc[-1]
-    games = latest_season["GP"]
-    team_abbr = latest_season["TEAM_ABBREVIATION"]
+    games = safe_float(latest_season.get("GP"))
+    team_abbr = safe_text(latest_season.get("TEAM_ABBREVIATION"))
 
     career_table = []
 
     for _, row in df.iterrows():
-        gp = row["GP"]
+        gp = safe_float(row.get("GP"))
 
         career_table.append(
             {
-                "season": row["SEASON_ID"],
-                "team": row["TEAM_ABBREVIATION"],
-                "games": gp,
-                "ppg": round(row["PTS"] / gp, 1),
-                "rpg": round(row["REB"] / gp, 1),
-                "apg": round(row["AST"] / gp, 1),
-                "fg_pct": round(row["FG_PCT"] * 100, 1),
-                "fg3_pct": round(row["FG3_PCT"] * 100, 1),
-                "ft_pct": round(row["FT_PCT"] * 100, 1),
+                "season": safe_text(row.get("SEASON_ID"), "--"),
+                "team": safe_text(row.get("TEAM_ABBREVIATION")),
+                "games": int(gp),
+                "ppg": round(safe_float(row.get("PTS")) / gp, 1),
+                "rpg": round(safe_float(row.get("REB")) / gp, 1),
+                "apg": round(safe_float(row.get("AST")) / gp, 1),
+                "fg_pct": round(safe_float(row.get("FG_PCT")) * 100, 1),
+                "fg3_pct": round(safe_float(row.get("FG3_PCT")) * 100, 1),
+                "ft_pct": round(safe_float(row.get("FT_PCT")) * 100, 1),
             }
         )
 
@@ -339,16 +352,16 @@ def get_player_stats(player_name):
         "name": player_info["full_name"],
         "team_name": team_names.get(team_abbr, team_abbr),
         "team_logo": team_logos.get(team_abbr),
-        "season": latest_season["SEASON_ID"],
-        "games": games,
-        "ppg": round(latest_season["PTS"] / games, 1),
-        "rpg": round(latest_season["REB"] / games, 1),
-        "apg": round(latest_season["AST"] / games, 1),
-        "spg": round(latest_season["STL"] / games, 1),
-        "bpg": round(latest_season["BLK"] / games, 1),
-        "fg_pct": round(latest_season["FG_PCT"] * 100, 1),
-        "fg3_pct": round(latest_season["FG3_PCT"] * 100, 1),
-        "ft_pct": round(latest_season["FT_PCT"] * 100, 1),
+        "season": safe_text(latest_season.get("SEASON_ID"), "--"),
+        "games": int(games),
+        "ppg": round(safe_float(latest_season.get("PTS")) / games, 1),
+        "rpg": round(safe_float(latest_season.get("REB")) / games, 1),
+        "apg": round(safe_float(latest_season.get("AST")) / games, 1),
+        "spg": round(safe_float(latest_season.get("STL")) / games, 1),
+        "bpg": round(safe_float(latest_season.get("BLK")) / games, 1),
+        "fg_pct": round(safe_float(latest_season.get("FG_PCT")) * 100, 1),
+        "fg3_pct": round(safe_float(latest_season.get("FG3_PCT")) * 100, 1),
+        "ft_pct": round(safe_float(latest_season.get("FT_PCT")) * 100, 1),
         "career_points": career_points,
         "career_rebounds": career_rebounds,
         "career_assists": career_assists,
