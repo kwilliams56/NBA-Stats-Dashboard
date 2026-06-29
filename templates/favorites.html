@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Teams</title>
+    <title>Favorite NBA Players</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/loading.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/favorites.js') }}" defer></script>
 </head>
 
 <body>
@@ -21,22 +22,19 @@
         </div>
     </nav>
 
-    <main class="teams-page">
-        <section class="teams-header">
-            <h1>NBA Teams</h1>
-            <p>Explore every franchise profile with official team logos and quick access to team pages.</p>
-        </section>
+    <main class="favorites-page">
+        <header class="favorites-header">
+            <p>My NBA</p>
+            <h1>Favorite Players</h1>
+            <span>Players saved in this browser</span>
+        </header>
 
-        <section class="team-grid">
-            {% for team in teams %}
-            <a class="team-card" href="{{ url_for('team_profile', team_abbr=team.abbr) }}">
-                {% if team.logo %}
-                <img src="{{ team.logo }}" alt="{{ team.name }} logo">
-                {% endif %}
-                <h2>{{ team.name }}</h2>
-                <p>{{ team.abbr }}</p>
-            </a>
-            {% endfor %}
+        <section id="favoritesGrid" class="favorites-grid" aria-live="polite"></section>
+
+        <section id="favoritesEmpty" class="favorites-empty">
+            <h2>No favorite players yet</h2>
+            <p>Open any player profile and select Add to Favorites.</p>
+            <a href="/">Find a Player</a>
         </section>
     </main>
 </body>
