@@ -60,6 +60,8 @@
 - [x] Fifteen-minute NBA API caching
 - [x] Graceful stale-cache fallback for NBA API failures
 - [x] Production Flask-Caching FileSystemCache fallback
+- [x] Render player profile timeout protection
+- [x] Render cold-cache fallback data
 
 ## Polish
 - [x] Portfolio footer and About page
