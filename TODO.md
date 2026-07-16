@@ -62,6 +62,7 @@
 - [x] Production Flask-Caching FileSystemCache fallback
 - [x] Render player profile timeout protection
 - [x] Render health check avoids NBA API calls
+- [x] Persistent Redis cache for Render
 
 ## Polish
 - [x] Portfolio footer and About page
