@@ -27,6 +27,9 @@
 
     {% if player %}
     <div class="profile-hero">
+        {% if cached_data_notice %}
+        <div class="cached-data-notice">{{ cached_data_notice }}</div>
+        {% endif %}
         <img src="{{ player.image_url }}" class="profile-player-img">
 
         {% if player.team_logo %}

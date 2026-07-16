@@ -1,11 +1,22 @@
 from datetime import datetime
 from difflib import get_close_matches
 from functools import wraps
+import hashlib
+import pickle
 import threading
 import time
 import unicodedata
 
-from flask import Flask, redirect, render_template, request, url_for
+from flask import (
+    Flask,
+    g,
+    has_request_context,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask_caching import Cache
 from nba_api.stats.static import players, teams as nba_teams
 from nba_api.stats.endpoints import (
     commonteamroster,
@@ -18,70 +29,91 @@ from nba_api.stats.endpoints import (
 
 app = Flask(__name__)
 
-CACHE_TTL_SECONDS = 15 * 60
-NBA_API_TIMEOUT_SECONDS = 5
-CAREER_API_TIMEOUT_SECONDS = 10
+PLAYER_CACHE_TTL_SECONDS = 12 * 60 * 60
+SIMILAR_CACHE_TTL_SECONDS = 12 * 60 * 60
+LEADERS_CACHE_TTL_SECONDS = 60 * 60
+TEAM_CACHE_TTL_SECONDS = 6 * 60 * 60
+TRENDING_CACHE_TTL_SECONDS = 60 * 60
+AWARDS_CACHE_TTL_SECONDS = 12 * 60 * 60
+STALE_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60
+CACHE_NOTICE = "Live NBA data is temporarily unavailable. Showing cached data."
+NBA_API_TIMEOUT_SECONDS = 4
+CAREER_API_TIMEOUT_SECONDS = 4
+
+app.config.update(
+    CACHE_TYPE="FileSystemCache",
+    CACHE_DIR="flask_cache",
+    CACHE_DEFAULT_TIMEOUT=PLAYER_CACHE_TTL_SECONDS,
+    CACHE_THRESHOLD=500,
+)
+cache = Cache(app)
+_cache_locks = {}
+_cache_locks_lock = threading.Lock()
 
 
-def ttl_cache(ttl_seconds=CACHE_TTL_SECONDS):
+def make_cache_key(function, args, kwargs):
+    payload = pickle.dumps(
+        (function.__module__, function.__name__, args, tuple(sorted(kwargs.items()))),
+        protocol=pickle.HIGHEST_PROTOCOL,
+    )
+    return f"nba_api:{function.__name__}:{hashlib.sha256(payload).hexdigest()}"
+
+
+def mark_cached_data_notice():
+    if has_request_context():
+        g.cached_data_notice = CACHE_NOTICE
+
+
+def get_cached_data_notice():
+    if has_request_context():
+        return getattr(g, "cached_data_notice", None)
+    return None
+
+
+def ttl_cache(
+    ttl_seconds=PLAYER_CACHE_TTL_SECONDS,
+    stale_seconds=STALE_CACHE_TTL_SECONDS,
+):
     def decorator(function):
-        cache = {}
-        key_locks = {}
-        cache_lock = threading.Lock()
-
         @wraps(function)
         def wrapper(*args, **kwargs):
-            key = (args, tuple(sorted(kwargs.items())))
-            now = time.monotonic()
-            stale_value = None
+            cache_key = make_cache_key(function, args, kwargs)
+            stale_cache_key = f"{cache_key}:stale"
+            cached_value = cache.get(cache_key)
 
-            with cache_lock:
-                cached = cache.get(key)
-                if cached and cached["expires_at"] > now:
-                    return cached["value"]
-                if cached:
-                    stale_value = cached["value"]
-                key_lock = key_locks.setdefault(key, threading.Lock())
+            if cached_value is not None:
+                return cached_value
+
+            with _cache_locks_lock:
+                key_lock = _cache_locks.setdefault(cache_key, threading.Lock())
 
             try:
                 with key_lock:
-                    now = time.monotonic()
-
-                    with cache_lock:
-                        cached = cache.get(key)
-                        if cached and cached["expires_at"] > now:
-                            return cached["value"]
+                    cached_value = cache.get(cache_key)
+                    if cached_value is not None:
+                        return cached_value
 
                     try:
                         value = function(*args, **kwargs)
                     except Exception:
+                        stale_value = cache.get(stale_cache_key)
                         if stale_value is not None:
                             app.logger.warning(
                                 "Using stale cached data for %s after NBA API failure",
                                 function.__name__,
                             )
+                            mark_cached_data_notice()
                             return stale_value
                         raise
 
                     if value is not None:
-                        with cache_lock:
-                            expired_keys = [
-                                cached_key
-                                for cached_key, entry in cache.items()
-                                if entry["expires_at"] <= now
-                            ]
-                            for expired_key in expired_keys:
-                                cache.pop(expired_key, None)
-
-                            cache[key] = {
-                                "expires_at": now + ttl_seconds,
-                                "value": value,
-                            }
+                        cache.set(cache_key, value, timeout=ttl_seconds)
+                        cache.set(stale_cache_key, value, timeout=stale_seconds)
 
                     return value
             finally:
-                with cache_lock:
-                    key_locks.pop(key, None)
+                with _cache_locks_lock:
+                    _cache_locks.pop(cache_key, None)
 
         wrapper.cache_clear = cache.clear
         return wrapper
@@ -249,7 +281,7 @@ def safe_text(value, default="NBA"):
     return str(value)
 
 
-@ttl_cache()
+@ttl_cache(PLAYER_CACHE_TTL_SECONDS)
 def get_regular_season_career(player_id):
     required_columns = {
         "SEASON_ID",
@@ -298,7 +330,7 @@ def get_regular_season_career(player_id):
     return None
 
 
-@ttl_cache()
+@ttl_cache(PLAYER_CACHE_TTL_SECONDS)
 def get_player_stats(player_name):
     all_players = players.get_players()
 
@@ -370,7 +402,7 @@ def get_player_stats(player_name):
     }
 
 
-@ttl_cache()
+@ttl_cache(AWARDS_CACHE_TTL_SECONDS)
 def get_player_awards(player_id):
     awards_data = playerawards.PlayerAwards(
         player_id=player_id,
@@ -465,7 +497,7 @@ def get_similarity_tags(player, candidate):
     return [label for label, _ in sorted(differences, key=lambda item: item[1])[:2]]
 
 
-@ttl_cache()
+@ttl_cache(SIMILAR_CACHE_TTL_SECONDS)
 def get_similar_players(player_name, limit=4):
     player = get_player_stats(player_name)
 
@@ -506,7 +538,7 @@ def get_similar_players(player_name, limit=4):
     ]
 
 
-@ttl_cache()
+@ttl_cache(LEADERS_CACHE_TTL_SECONDS)
 def get_league_leaders(limit=5):
     leader_categories = {
         "ppg": {"title": "Points Per Game", "label": "PPG", "format": "number"},
@@ -560,7 +592,7 @@ def get_league_leaders(limit=5):
     return leaders
 
 
-@ttl_cache()
+@ttl_cache(TRENDING_CACHE_TTL_SECONDS)
 def get_trending_players(season, limit=6):
     recent_stats = leaguedashplayerstats.LeagueDashPlayerStats(
         last_n_games=5,
@@ -607,7 +639,9 @@ def home():
 
     try:
         trending_players = get_trending_players(get_current_nba_season())
-        if not trending_players:
+        if get_cached_data_notice():
+            trending_error = get_cached_data_notice()
+        elif not trending_players:
             trending_error = "No recent player trends are available."
     except Exception:
         trending_error = "Recent player trends are temporarily unavailable."
@@ -673,7 +707,11 @@ def compare():
                 error = "One or both players could not be found."
 
     return render_template(
-        "compare.html", player1=player1, player2=player2, error=error
+        "compare.html",
+        player1=player1,
+        player2=player2,
+        error=error,
+        cached_data_notice=get_cached_data_notice(),
     )
 
 
@@ -688,7 +726,12 @@ def league_leaders():
         leaders = []
         error = "League leaders are temporarily unavailable. Please try again."
 
-    return render_template("leaders.html", leaders=leaders, error=error)
+    return render_template(
+        "leaders.html",
+        leaders=leaders,
+        error=error,
+        cached_data_notice=get_cached_data_notice(),
+    )
 
 
 def get_current_nba_season():
@@ -697,7 +740,7 @@ def get_current_nba_season():
     return f"{start_year}-{str(start_year + 1)[-2:]}"
 
 
-@ttl_cache()
+@ttl_cache(TEAM_CACHE_TTL_SECONDS)
 def get_team_stats(team_id, season):
     dashboard = teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits(
         team_id=team_id,
@@ -727,7 +770,7 @@ def get_team_stats(team_id, season):
     }
 
 
-@ttl_cache()
+@ttl_cache(TEAM_CACHE_TTL_SECONDS)
 def get_team_roster(team_id, season):
     response = commonteamroster.CommonTeamRoster(
         team_id=team_id,
@@ -833,6 +876,7 @@ def team_profile(team_abbr):
         stats_error=stats_error,
         roster=roster,
         roster_error=roster_error,
+        cached_data_notice=get_cached_data_notice(),
         error=None,
     )
 
@@ -846,12 +890,21 @@ def player_profile(player_name):
         return render_template(
             "player.html",
             player=None,
-            error="Player stats are temporarily unavailable. Please try again.",
+            cached_data_notice=None,
+            error=(
+                "Player stats are temporarily unavailable. "
+                "Please try again in a moment."
+            ),
         )
 
     if not player:
         return (
-            render_template("player.html", player=None, error="Player not found."),
+            render_template(
+                "player.html",
+                player=None,
+                cached_data_notice=None,
+                error="Player not found.",
+            ),
             404,
         )
 
@@ -880,6 +933,7 @@ def player_profile(player_name):
         awards_error=awards_error,
         similar_players=similar_players,
         similar_error=similar_error,
+        cached_data_notice=get_cached_data_notice(),
         error=None,
     )
 
