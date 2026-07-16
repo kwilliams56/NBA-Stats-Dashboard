@@ -61,7 +61,6 @@
 - [x] Graceful stale-cache fallback for NBA API failures
 - [x] Production Flask-Caching FileSystemCache fallback
 - [x] Render player profile timeout protection
-- [x] Render cold-cache fallback data
 - [x] Render health check avoids NBA API calls
 
 ## Polish
