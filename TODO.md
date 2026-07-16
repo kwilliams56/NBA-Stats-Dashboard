@@ -59,6 +59,7 @@
 ## Performance
 - [x] Fifteen-minute NBA API caching
 - [x] Graceful stale-cache fallback for NBA API failures
+- [x] Production Flask-Caching FileSystemCache fallback
 
 ## Polish
 - [x] Portfolio footer and About page

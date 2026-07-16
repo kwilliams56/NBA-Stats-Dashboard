@@ -28,6 +28,10 @@
             <p>Top performers across scoring, rebounding, playmaking, defense, and shooting categories.</p>
         </section>
 
+        {% if cached_data_notice %}
+        <div class="cached-data-notice">{{ cached_data_notice }}</div>
+        {% endif %}
+
         {% if error %}
         <p class="error">{{ error }}</p>
         {% endif %}

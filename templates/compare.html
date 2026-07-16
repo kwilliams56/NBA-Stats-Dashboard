@@ -467,6 +467,10 @@
         </section>
         {% endif %}
 
+        {% if cached_data_notice %}
+        <div class="cached-data-notice">{{ cached_data_notice }}</div>
+        {% endif %}
+
         {% if error %}
         <p class="error">{{ error }}</p>
         {% endif %}

@@ -25,6 +25,10 @@
     {% if team %}
     <main class="team-profile-page">
         <section class="team-profile-hero">
+            {% if cached_data_notice %}
+            <div class="cached-data-notice">{{ cached_data_notice }}</div>
+            {% endif %}
+
             {% if team.logo %}
             <img src="{{ team.logo }}" alt="{{ team.name }} logo">
             {% endif %}
