@@ -62,6 +62,7 @@
 - [x] Production Flask-Caching FileSystemCache fallback
 - [x] Render player profile timeout protection
 - [x] Render cold-cache fallback data
+- [x] Render health check avoids NBA API calls
 
 ## Polish
 - [x] Portfolio footer and About page

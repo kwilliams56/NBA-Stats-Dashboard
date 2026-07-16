@@ -1083,24 +1083,32 @@ def get_trending_players(season, limit=6):
     ]
 
 
+@app.route("/health")
+def health_check():
+    return {"status": "ok"}, 200
+
+
 @app.route("/", methods=["GET", "POST"])
 def home():
+    if request.method == "HEAD":
+        return "", 200
+
     error = None
     search_results = []
     suggested_players = []
     trending_players = []
     trending_error = None
 
-    try:
-        trending_players = get_trending_players(get_current_nba_season())
-        if get_cached_data_notice():
-            trending_error = get_cached_data_notice()
-        elif not trending_players:
-            trending_error = "No recent player trends are available."
-    except Exception:
-        app.logger.exception("Unable to load trending players")
+    season = get_current_nba_season()
+    trending_players = get_cached_function_value(get_trending_players, season)
+
+    if not trending_players:
         trending_players = get_fallback_trending_players()
+
+    if get_cached_data_notice():
         trending_error = get_cached_data_notice()
+    elif not trending_players:
+        trending_error = "No recent player trends are available."
 
     if request.method == "POST":
         player_name = request.form.get("player_name", "").strip()
