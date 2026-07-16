@@ -37,8 +37,8 @@ TRENDING_CACHE_TTL_SECONDS = 60 * 60
 AWARDS_CACHE_TTL_SECONDS = 12 * 60 * 60
 STALE_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60
 CACHE_NOTICE = "Live NBA data is temporarily unavailable. Showing cached data."
-NBA_API_TIMEOUT_SECONDS = 3
-CAREER_API_TIMEOUT_SECONDS = 3
+NBA_API_TIMEOUT_SECONDS = 15
+CAREER_API_TIMEOUT_SECONDS = 15
 
 app.config.update(
     CACHE_TYPE="FileSystemCache",
@@ -578,8 +578,7 @@ def get_fallback_player_stats(player_name):
         "career_assists": fallback["career_assists"],
         "career_table": career_table,
         "image_url": (
-            "https://cdn.nba.com/headshots/nba/latest/1040x760/"
-            f"{fallback['id']}.png"
+            "https://cdn.nba.com/headshots/nba/latest/1040x760/" f"{fallback['id']}.png"
         ),
     }
 
@@ -617,11 +616,26 @@ def get_fallback_league_leaders(limit=5):
         "apg": {"title": "Assists Per Game", "label": "APG", "format": "number"},
         "spg": {"title": "Steals Per Game", "label": "SPG", "format": "number"},
         "bpg": {"title": "Blocks Per Game", "label": "BPG", "format": "number"},
-        "fg_pct": {"title": "Field Goal Percentage", "label": "FG%", "format": "percent"},
-        "fg3_pct": {"title": "Three-Point Percentage", "label": "3PT%", "format": "percent"},
-        "ft_pct": {"title": "Free Throw Percentage", "label": "FT%", "format": "percent"},
+        "fg_pct": {
+            "title": "Field Goal Percentage",
+            "label": "FG%",
+            "format": "percent",
+        },
+        "fg3_pct": {
+            "title": "Three-Point Percentage",
+            "label": "3PT%",
+            "format": "percent",
+        },
+        "ft_pct": {
+            "title": "Free Throw Percentage",
+            "label": "FT%",
+            "format": "percent",
+        },
     }
-    player_pool = [get_fallback_player_stats(player["name"]) for player in FALLBACK_PLAYERS.values()]
+    player_pool = [
+        get_fallback_player_stats(player["name"])
+        for player in FALLBACK_PLAYERS.values()
+    ]
 
     return [
         {
@@ -672,8 +686,7 @@ def find_matching_players(player_name, player_list):
 
 def get_player_suggestions(player_name, player_list, limit=3):
     normalized_players = {
-        normalize_player_name(player["full_name"]): player
-        for player in player_list
+        normalize_player_name(player["full_name"]): player for player in player_list
     }
     closest_names = get_close_matches(
         normalize_player_name(player_name),
@@ -858,8 +871,7 @@ def get_player_awards(player_id):
         "mvps": {
             "label": "Most Valuable Player",
             "short_label": "MVPs",
-            "matches": lambda description: description
-            == "nba most valuable player",
+            "matches": lambda description: description == "nba most valuable player",
         },
         "all_stars": {
             "label": "NBA All-Star",
