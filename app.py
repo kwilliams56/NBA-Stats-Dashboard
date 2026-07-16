@@ -1,6 +1,8 @@
 from datetime import datetime
 from difflib import get_close_matches
 from functools import wraps
+import json
+import os
 import hashlib
 import pickle
 import threading
@@ -40,12 +42,21 @@ CACHE_NOTICE = "Live NBA data is temporarily unavailable. Showing cached data."
 NBA_API_TIMEOUT_SECONDS = 15
 CAREER_API_TIMEOUT_SECONDS = 15
 
-app.config.update(
-    CACHE_TYPE="FileSystemCache",
-    CACHE_DIR="flask_cache",
-    CACHE_DEFAULT_TIMEOUT=PLAYER_CACHE_TTL_SECONDS,
-    CACHE_THRESHOLD=500,
-)
+redis_url = os.environ.get("REDIS_URL")
+
+if redis_url:
+    app.config.update(
+        CACHE_TYPE="RedisCache",
+        CACHE_REDIS_URL=redis_url,
+        CACHE_DEFAULT_TIMEOUT=PLAYER_CACHE_TTL_SECONDS,
+    )
+else:
+    app.config.update(
+        CACHE_TYPE="SimpleCache",
+        CACHE_DEFAULT_TIMEOUT=PLAYER_CACHE_TTL_SECONDS,
+        CACHE_THRESHOLD=500,
+    )
+
 cache = Cache(app)
 _cache_locks = {}
 _cache_locks_lock = threading.Lock()
@@ -201,6 +212,16 @@ team_logos = {
     "UTA": "https://cdn.nba.com/logos/nba/1610612762/primary/L/logo.svg",
     "WAS": "https://cdn.nba.com/logos/nba/1610612764/primary/L/logo.svg",
 }
+
+
+COMMON_PREWARM_PLAYERS = [
+    "Stephen Curry",
+    "LeBron James",
+    "Michael Jordan",
+    "Kevin Durant",
+    "Nikola Jokic",
+    "Giannis Antetokounmpo",
+]
 
 
 similar_player_pool = [
@@ -658,6 +679,98 @@ def get_trending_players(season, limit=6):
     ]
 
 
+def record_prewarm_result(results, name, callback):
+    try:
+        value = callback()
+        results[name] = {
+            "ok": True,
+            "items": len(value) if isinstance(value, list) else int(value is not None),
+        }
+    except Exception as error:
+        results[name] = {
+            "ok": False,
+            "error": f"{type(error).__name__}: {error}",
+        }
+
+
+def prewarm_cache():
+    results = {}
+    season = get_current_nba_season()
+
+    record_prewarm_result(
+        results,
+        "trending_players",
+        lambda: get_trending_players(season),
+    )
+    record_prewarm_result(results, "league_leaders", get_league_leaders)
+
+    for player_name in COMMON_PREWARM_PLAYERS:
+        record_prewarm_result(
+            results,
+            f"player_profile:{player_name}",
+            lambda player_name=player_name: get_player_stats(player_name),
+        )
+        record_prewarm_result(
+            results,
+            f"similar_players:{player_name}",
+            lambda player_name=player_name: get_similar_players(player_name),
+        )
+
+    current_season = get_current_nba_season()
+    for team_abbr in team_names:
+        nba_team = nba_teams.find_team_by_abbreviation(team_abbr)
+        if not nba_team:
+            results[f"team_stats:{team_abbr}"] = {
+                "ok": False,
+                "error": "Team id not found",
+            }
+            results[f"team_roster:{team_abbr}"] = {
+                "ok": False,
+                "error": "Team id not found",
+            }
+            continue
+
+        team_id = nba_team["id"]
+        record_prewarm_result(
+            results,
+            f"team_stats:{team_abbr}",
+            lambda team_id=team_id: get_team_stats(team_id, current_season),
+        )
+        record_prewarm_result(
+            results,
+            f"team_roster:{team_abbr}",
+            lambda team_id=team_id: get_team_roster(team_id, current_season),
+        )
+
+    return results
+
+
+@app.cli.command("prewarm-cache")
+def prewarm_cache_command():
+    results = prewarm_cache()
+    click_output = json.dumps(results, indent=2, sort_keys=True)
+    print(click_output)
+
+
+@app.route("/admin/prewarm-cache", methods=["POST"])
+def admin_prewarm_cache():
+    expected_token = os.environ.get("CACHE_PREWARM_TOKEN")
+    provided_token = request.headers.get("X-Prewarm-Token")
+
+    if not expected_token or provided_token != expected_token:
+        return {"error": "Unauthorized"}, 401
+
+    results = prewarm_cache()
+    ok_count = sum(1 for result in results.values() if result["ok"])
+
+    return {
+        "ok": ok_count == len(results),
+        "succeeded": ok_count,
+        "failed": len(results) - ok_count,
+        "results": results,
+    }
+
+
 @app.route("/health")
 def health_check():
     return {"status": "ok"}, 200
@@ -674,14 +787,12 @@ def home():
     trending_players = []
     trending_error = None
 
-    try:
-        trending_players = get_trending_players(get_current_nba_season())
-        if get_cached_data_notice():
-            trending_error = get_cached_data_notice()
-        elif not trending_players:
-            trending_error = "No recent player trends are available."
-    except Exception:
-        app.logger.warning("Unable to load trending players from NBA API")
+    season = get_current_nba_season()
+    trending_players = get_cached_function_value(get_trending_players, season)
+
+    if get_cached_data_notice():
+        trending_error = get_cached_data_notice()
+    elif not trending_players:
         trending_error = "Recent player trends are temporarily unavailable."
 
     if request.method == "POST":

@@ -151,6 +151,50 @@ http://127.0.0.1:5000
 
 ---
 
+# Production Cache Setup
+
+This app supports persistent caching with Render Key Value/Redis so NBA API data can survive Render restarts and deployments.
+
+## Render Environment Variables
+
+Create a Render Key Value instance, then add these environment variables to the web service:
+
+```text
+REDIS_URL=<your Render Key Value internal Redis URL>
+CACHE_PREWARM_TOKEN=<a long private random token>
+```
+
+When `REDIS_URL` is present, the app uses Redis for Flask-Caching. When it is not present, the app uses local `SimpleCache` for development.
+
+## Prewarm the Cache
+
+After deploying, prewarm common NBA data so users do not have to wait on slow first requests:
+
+```bash
+flask --app app prewarm-cache
+```
+
+You can also trigger prewarming through the protected admin endpoint:
+
+```bash
+curl -X POST https://nba-stats-dashboard.onrender.com/admin/prewarm-cache \
+  -H "X-Prewarm-Token: <your CACHE_PREWARM_TOKEN>"
+```
+
+The endpoint returns JSON showing which datasets succeeded or failed. Do not put the token in the URL.
+
+## Render Health Check
+
+Set the Render health check path to:
+
+```text
+/health
+```
+
+The health check does not call the NBA API.
+
+---
+
 # 🎯 Future Improvements
 
 - Advanced analytics
