@@ -237,422 +237,6 @@ similar_player_pool = [
 ]
 
 
-FALLBACK_PLAYERS = {
-    "stephen curry": {
-        "id": 201939,
-        "name": "Stephen Curry",
-        "team": "GSW",
-        "season": "2025-26",
-        "games": 74,
-        "ppg": 24.5,
-        "rpg": 4.4,
-        "apg": 6.0,
-        "spg": 1.1,
-        "bpg": 0.4,
-        "fg_pct": 44.8,
-        "fg3_pct": 40.3,
-        "ft_pct": 92.1,
-        "career_points": 25000,
-        "career_rebounds": 4700,
-        "career_assists": 6800,
-    },
-    "lebron james": {
-        "id": 2544,
-        "name": "LeBron James",
-        "team": "LAL",
-        "season": "2025-26",
-        "games": 70,
-        "ppg": 24.4,
-        "rpg": 7.8,
-        "apg": 8.2,
-        "spg": 0.9,
-        "bpg": 0.6,
-        "fg_pct": 51.3,
-        "fg3_pct": 37.6,
-        "ft_pct": 75.0,
-        "career_points": 42000,
-        "career_rebounds": 11500,
-        "career_assists": 11500,
-    },
-    "luka doncic": {
-        "id": 1629029,
-        "name": "Luka Doncic",
-        "team": "LAL",
-        "season": "2025-26",
-        "games": 72,
-        "ppg": 30.2,
-        "rpg": 8.8,
-        "apg": 8.9,
-        "spg": 1.4,
-        "bpg": 0.5,
-        "fg_pct": 48.5,
-        "fg3_pct": 37.8,
-        "ft_pct": 78.6,
-        "career_points": 12500,
-        "career_rebounds": 3900,
-        "career_assists": 3800,
-    },
-    "seth curry": {
-        "id": 203552,
-        "name": "Seth Curry",
-        "team": "CHA",
-        "season": "2025-26",
-        "games": 62,
-        "ppg": 8.9,
-        "rpg": 1.8,
-        "apg": 1.8,
-        "spg": 0.6,
-        "bpg": 0.1,
-        "fg_pct": 45.6,
-        "fg3_pct": 43.1,
-        "ft_pct": 86.0,
-        "career_points": 5200,
-        "career_rebounds": 1100,
-        "career_assists": 1100,
-    },
-    "michael jordan": {
-        "id": 893,
-        "name": "Michael Jordan",
-        "team": "CHI",
-        "season": "2002-03",
-        "games": 82,
-        "ppg": 20.0,
-        "rpg": 6.1,
-        "apg": 3.8,
-        "spg": 1.5,
-        "bpg": 0.5,
-        "fg_pct": 44.5,
-        "fg3_pct": 29.1,
-        "ft_pct": 82.1,
-        "career_points": 32292,
-        "career_rebounds": 6672,
-        "career_assists": 5633,
-    },
-    "larry bird": {
-        "id": 1449,
-        "name": "Larry Bird",
-        "team": "BOS",
-        "season": "1991-92",
-        "games": 45,
-        "ppg": 20.2,
-        "rpg": 9.6,
-        "apg": 6.8,
-        "spg": 0.9,
-        "bpg": 0.7,
-        "fg_pct": 46.6,
-        "fg3_pct": 40.6,
-        "ft_pct": 92.6,
-        "career_points": 21791,
-        "career_rebounds": 8974,
-        "career_assists": 5695,
-    },
-    "wilt chamberlain": {
-        "id": 76375,
-        "name": "Wilt Chamberlain",
-        "team": "LAL",
-        "season": "1972-73",
-        "games": 82,
-        "ppg": 13.2,
-        "rpg": 18.6,
-        "apg": 4.5,
-        "spg": 0.0,
-        "bpg": 0.0,
-        "fg_pct": 72.7,
-        "fg3_pct": 0.0,
-        "ft_pct": 51.0,
-        "career_points": 31419,
-        "career_rebounds": 23924,
-        "career_assists": 4643,
-    },
-    "kevin durant": {
-        "id": 201142,
-        "name": "Kevin Durant",
-        "team": "HOU",
-        "season": "2025-26",
-        "games": 70,
-        "ppg": 27.1,
-        "rpg": 6.5,
-        "apg": 5.0,
-        "spg": 0.9,
-        "bpg": 1.1,
-        "fg_pct": 52.3,
-        "fg3_pct": 41.3,
-        "ft_pct": 86.0,
-        "career_points": 30000,
-        "career_rebounds": 7900,
-        "career_assists": 4800,
-    },
-    "nikola jokic": {
-        "id": 203999,
-        "name": "Nikola Jokic",
-        "team": "DEN",
-        "season": "2025-26",
-        "games": 74,
-        "ppg": 27.8,
-        "rpg": 12.2,
-        "apg": 9.8,
-        "spg": 1.3,
-        "bpg": 0.8,
-        "fg_pct": 57.5,
-        "fg3_pct": 40.0,
-        "ft_pct": 82.5,
-        "career_points": 15000,
-        "career_rebounds": 7700,
-        "career_assists": 5100,
-    },
-    "giannis antetokounmpo": {
-        "id": 203507,
-        "name": "Giannis Antetokounmpo",
-        "team": "MIL",
-        "season": "2025-26",
-        "games": 73,
-        "ppg": 30.4,
-        "rpg": 11.6,
-        "apg": 6.1,
-        "spg": 1.2,
-        "bpg": 1.1,
-        "fg_pct": 60.8,
-        "fg3_pct": 28.0,
-        "ft_pct": 66.0,
-        "career_points": 21000,
-        "career_rebounds": 9000,
-        "career_assists": 4300,
-    },
-    "jayson tatum": {
-        "id": 1628369,
-        "name": "Jayson Tatum",
-        "team": "BOS",
-        "season": "2025-26",
-        "games": 74,
-        "ppg": 26.8,
-        "rpg": 8.4,
-        "apg": 5.3,
-        "spg": 1.1,
-        "bpg": 0.6,
-        "fg_pct": 46.5,
-        "fg3_pct": 37.8,
-        "ft_pct": 83.5,
-        "career_points": 13000,
-        "career_rebounds": 4200,
-        "career_assists": 2300,
-    },
-    "anthony edwards": {
-        "id": 1630162,
-        "name": "Anthony Edwards",
-        "team": "MIN",
-        "season": "2025-26",
-        "games": 76,
-        "ppg": 27.6,
-        "rpg": 5.7,
-        "apg": 5.1,
-        "spg": 1.3,
-        "bpg": 0.5,
-        "fg_pct": 46.2,
-        "fg3_pct": 39.5,
-        "ft_pct": 83.0,
-        "career_points": 8500,
-        "career_rebounds": 1900,
-        "career_assists": 1700,
-    },
-    "shai gilgeous-alexander": {
-        "id": 1628983,
-        "name": "Shai Gilgeous-Alexander",
-        "team": "OKC",
-        "season": "2025-26",
-        "games": 75,
-        "ppg": 31.0,
-        "rpg": 5.6,
-        "apg": 6.4,
-        "spg": 1.9,
-        "bpg": 0.9,
-        "fg_pct": 53.0,
-        "fg3_pct": 36.5,
-        "ft_pct": 87.5,
-        "career_points": 11000,
-        "career_rebounds": 2500,
-        "career_assists": 2900,
-    },
-    "victor wembanyama": {
-        "id": 1641705,
-        "name": "Victor Wembanyama",
-        "team": "SAS",
-        "season": "2025-26",
-        "games": 70,
-        "ppg": 24.3,
-        "rpg": 11.0,
-        "apg": 4.0,
-        "spg": 1.2,
-        "bpg": 3.7,
-        "fg_pct": 48.0,
-        "fg3_pct": 34.0,
-        "ft_pct": 80.0,
-        "career_points": 3300,
-        "career_rebounds": 1500,
-        "career_assists": 550,
-    },
-    "devin booker": {
-        "id": 1626164,
-        "name": "Devin Booker",
-        "team": "PHX",
-        "season": "2025-26",
-        "games": 72,
-        "ppg": 26.5,
-        "rpg": 4.2,
-        "apg": 6.8,
-        "spg": 0.9,
-        "bpg": 0.3,
-        "fg_pct": 48.0,
-        "fg3_pct": 38.2,
-        "ft_pct": 87.0,
-        "career_points": 16000,
-        "career_rebounds": 3000,
-        "career_assists": 3500,
-    },
-    "donovan mitchell": {
-        "id": 1628378,
-        "name": "Donovan Mitchell",
-        "team": "CLE",
-        "season": "2025-26",
-        "games": 70,
-        "ppg": 27.4,
-        "rpg": 4.6,
-        "apg": 5.1,
-        "spg": 1.5,
-        "bpg": 0.4,
-        "fg_pct": 46.0,
-        "fg3_pct": 37.5,
-        "ft_pct": 86.5,
-        "career_points": 14000,
-        "career_rebounds": 2500,
-        "career_assists": 2800,
-    },
-}
-
-
-def get_fallback_player_stats(player_name):
-    normalized_name = normalize_player_name(player_name)
-    fallback = FALLBACK_PLAYERS.get(normalized_name)
-
-    if fallback is None:
-        for key, player in FALLBACK_PLAYERS.items():
-            if normalized_name in key or key in normalized_name:
-                fallback = player
-                break
-
-    if fallback is None:
-        return None
-
-    mark_cached_data_notice()
-    team_abbr = fallback["team"]
-    career_table = [
-        {
-            "season": fallback["season"],
-            "team": team_abbr,
-            "games": fallback["games"],
-            "ppg": fallback["ppg"],
-            "rpg": fallback["rpg"],
-            "apg": fallback["apg"],
-            "fg_pct": fallback["fg_pct"],
-            "fg3_pct": fallback["fg3_pct"],
-            "ft_pct": fallback["ft_pct"],
-        }
-    ]
-
-    return {
-        "id": fallback["id"],
-        "name": fallback["name"],
-        "team_name": team_names.get(team_abbr, team_abbr),
-        "team_logo": team_logos.get(team_abbr),
-        "season": fallback["season"],
-        "games": fallback["games"],
-        "ppg": fallback["ppg"],
-        "rpg": fallback["rpg"],
-        "apg": fallback["apg"],
-        "spg": fallback["spg"],
-        "bpg": fallback["bpg"],
-        "fg_pct": fallback["fg_pct"],
-        "fg3_pct": fallback["fg3_pct"],
-        "ft_pct": fallback["ft_pct"],
-        "career_points": fallback["career_points"],
-        "career_rebounds": fallback["career_rebounds"],
-        "career_assists": fallback["career_assists"],
-        "career_table": career_table,
-        "image_url": (
-            "https://cdn.nba.com/headshots/nba/latest/1040x760/" f"{fallback['id']}.png"
-        ),
-    }
-
-
-def get_fallback_trending_players(limit=6):
-    mark_cached_data_notice()
-    trending_pool = sorted(
-        FALLBACK_PLAYERS.values(),
-        key=lambda player: player["ppg"],
-        reverse=True,
-    )
-
-    return [
-        {
-            "id": player["id"],
-            "name": player["name"],
-            "team": player["team"],
-            "ppg": player["ppg"],
-            "rpg": player["rpg"],
-            "apg": player["apg"],
-            "image_url": (
-                "https://cdn.nba.com/headshots/nba/latest/260x190/"
-                f"{player['id']}.png"
-            ),
-        }
-        for player in trending_pool[:limit]
-    ]
-
-
-def get_fallback_league_leaders(limit=5):
-    mark_cached_data_notice()
-    leader_categories = {
-        "ppg": {"title": "Points Per Game", "label": "PPG", "format": "number"},
-        "rpg": {"title": "Rebounds Per Game", "label": "RPG", "format": "number"},
-        "apg": {"title": "Assists Per Game", "label": "APG", "format": "number"},
-        "spg": {"title": "Steals Per Game", "label": "SPG", "format": "number"},
-        "bpg": {"title": "Blocks Per Game", "label": "BPG", "format": "number"},
-        "fg_pct": {
-            "title": "Field Goal Percentage",
-            "label": "FG%",
-            "format": "percent",
-        },
-        "fg3_pct": {
-            "title": "Three-Point Percentage",
-            "label": "3PT%",
-            "format": "percent",
-        },
-        "ft_pct": {
-            "title": "Free Throw Percentage",
-            "label": "FT%",
-            "format": "percent",
-        },
-    }
-    player_pool = [
-        get_fallback_player_stats(player["name"])
-        for player in FALLBACK_PLAYERS.values()
-    ]
-
-    return [
-        {
-            "key": stat,
-            "title": category["title"],
-            "label": category["label"],
-            "format": category["format"],
-            "players": sorted(
-                player_pool,
-                key=lambda player: player.get(stat, 0),
-                reverse=True,
-            )[:limit],
-        }
-        for stat, category in leader_categories.items()
-    ]
-
-
 def normalize_player_name(player_name):
     normalized = unicodedata.normalize("NFKD", player_name)
     return (
@@ -784,26 +368,20 @@ def get_player_stats(player_name):
     matching_players = find_matching_players(player_name, all_players)
 
     if not matching_players:
-        return get_fallback_player_stats(player_name)
+        return None
 
     player_info = matching_players[0]
     player_id = player_info["id"]
 
-    try:
-        df = get_regular_season_career(player_id)
-    except Exception:
-        fallback_player = get_fallback_player_stats(player_info["full_name"])
-        if fallback_player:
-            return fallback_player
-        raise
+    df = get_regular_season_career(player_id)
 
     if df is None or df.empty:
-        return get_fallback_player_stats(player_info["full_name"])
+        return None
 
     df = df[df["GP"].apply(safe_float) > 0]
 
     if df.empty:
-        return get_fallback_player_stats(player_info["full_name"])
+        return None
 
     career_points = int(sum(safe_float(value) for value in df["PTS"]))
     career_rebounds = int(sum(safe_float(value) for value in df["REB"]))
@@ -966,13 +544,13 @@ def get_similar_players(player_name, limit=4):
         if candidate_name.lower() == player["name"].lower():
             continue
 
-        candidate = get_cached_function_value(get_player_stats, candidate_name)
-
-        if not candidate:
-            candidate = get_fallback_player_stats(candidate_name)
-
-        if not candidate:
+        try:
+            candidate = get_player_stats(candidate_name)
+        except Exception:
             request_failed = True
+            continue
+
+        if not candidate:
             continue
 
         score = get_similarity_score(player, candidate)
@@ -1016,10 +594,10 @@ def get_league_leaders(limit=5):
     player_pool = []
 
     for player_name in similar_player_pool:
-        player = get_cached_function_value(get_player_stats, player_name)
-
-        if not player:
-            player = get_fallback_player_stats(player_name)
+        try:
+            player = get_player_stats(player_name)
+        except Exception:
+            continue
 
         if player:
             player_pool.append(player)
@@ -1040,9 +618,6 @@ def get_league_leaders(limit=5):
             }
         )
 
-    if not any(category["players"] for category in leaders):
-        return get_fallback_league_leaders(limit)
-
     return leaders
 
 
@@ -1058,7 +633,7 @@ def get_trending_players(season, limit=6):
     ).get_data_frames()[0]
 
     if recent_stats.empty:
-        return get_fallback_trending_players(limit)
+        return []
 
     recent_stats = recent_stats[recent_stats["GP"] >= 2]
     recent_stats = recent_stats.sort_values(
@@ -1099,16 +674,15 @@ def home():
     trending_players = []
     trending_error = None
 
-    season = get_current_nba_season()
-    trending_players = get_cached_function_value(get_trending_players, season)
-
-    if not trending_players:
-        trending_players = get_fallback_trending_players()
-
-    if get_cached_data_notice():
-        trending_error = get_cached_data_notice()
-    elif not trending_players:
-        trending_error = "No recent player trends are available."
+    try:
+        trending_players = get_trending_players(get_current_nba_season())
+        if get_cached_data_notice():
+            trending_error = get_cached_data_notice()
+        elif not trending_players:
+            trending_error = "No recent player trends are available."
+    except Exception:
+        app.logger.warning("Unable to load trending players from NBA API")
+        trending_error = "Recent player trends are temporarily unavailable."
 
     if request.method == "POST":
         player_name = request.form.get("player_name", "").strip()
@@ -1187,8 +761,8 @@ def league_leaders():
         leaders = get_league_leaders()
     except Exception:
         app.logger.exception("Unable to load league leaders")
-        leaders = get_fallback_league_leaders()
-        error = get_cached_data_notice()
+        leaders = []
+        error = "League leaders are temporarily unavailable. Please try again."
 
     return render_template(
         "leaders.html",
@@ -1351,17 +925,15 @@ def player_profile(player_name):
         player = get_player_stats(player_name)
     except Exception:
         app.logger.exception("Unable to load stats for player %s", player_name)
-        player = get_fallback_player_stats(player_name)
-        if not player:
-            return render_template(
-                "player.html",
-                player=None,
-                cached_data_notice=None,
-                error=(
-                    "Player stats are temporarily unavailable. "
-                    "Please try again in a moment."
-                ),
-            )
+        return render_template(
+            "player.html",
+            player=None,
+            cached_data_notice=None,
+            error=(
+                "Player stats are temporarily unavailable. "
+                "Please try again in a moment."
+            ),
+        )
 
     if not player:
         return (
