@@ -21,6 +21,7 @@ from flask import (
 from flask_caching import Cache
 from nba_api.stats.static import players, teams as nba_teams
 from nba_api.stats.endpoints import (
+    commonplayerinfo,
     commonteamroster,
     leaguedashplayerstats,
     playerawards,
@@ -774,6 +775,45 @@ def admin_prewarm_cache():
 @app.route("/health")
 def health_check():
     return {"status": "ok"}, 200
+
+
+@app.route("/debug/nba-api-test")
+def nba_api_debug_test():
+    player_id = request.args.get("player_id", "201939")
+    started_at = time.monotonic()
+
+    try:
+        response = commonplayerinfo.CommonPlayerInfo(
+            player_id=player_id,
+            timeout=NBA_API_TIMEOUT_SECONDS,
+        )
+        frames = response.get_data_frames()
+        elapsed_ms = round((time.monotonic() - started_at) * 1000)
+
+        return {
+            "ok": True,
+            "endpoint": "CommonPlayerInfo",
+            "player_id": player_id,
+            "timeout_seconds": NBA_API_TIMEOUT_SECONDS,
+            "response_time_ms": elapsed_ms,
+            "data_frames": len(frames),
+            "rows": sum(len(frame) for frame in frames),
+        }
+    except Exception as error:
+        elapsed_ms = round((time.monotonic() - started_at) * 1000)
+
+        return (
+            {
+                "ok": False,
+                "endpoint": "CommonPlayerInfo",
+                "player_id": player_id,
+                "timeout_seconds": NBA_API_TIMEOUT_SECONDS,
+                "response_time_ms": elapsed_ms,
+                "error_type": type(error).__name__,
+                "error": str(error),
+            },
+            502,
+        )
 
 
 @app.route("/", methods=["GET", "POST"])
