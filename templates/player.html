@@ -52,6 +52,12 @@
             Add to Favorites
         </button>
 
+        {% if player.advanced_stats_unavailable %}
+        <section class="team-stats-unavailable">
+            <h2>Player Statistics</h2>
+            <p>{{ player.advanced_stats_message }}</p>
+        </section>
+        {% else %}
         <div class="stat-grid profile-stats">
             <div>
                 <h3>{{ player.ppg }}</h3>
@@ -103,6 +109,7 @@
                 </div>
             </div>
         </section>
+        {% endif %}
         <section class="player-awards">
             <div class="section-header">
                 <div>
@@ -161,6 +168,7 @@
         <p class="awards-unavailable">{{ similar_error }}</p>
         {% endif %}
 
+        {% if not player.advanced_stats_unavailable %}
         <div class="chart-box">
             <h2>Career PPG Trend</h2>
             <canvas id="profilePpgChart"></canvas>
@@ -334,7 +342,9 @@
                 }
             });
         </script>
+        {% endif %}
 
+        {% if not player.advanced_stats_unavailable %}
         <div class="career-table">
             <h2>Season-by-Season Stats</h2>
 
@@ -360,6 +370,7 @@
                 {% endfor %}
             </table>
         </div>
+        {% endif %}
     </div>
     {% else %}
     <p class="error">{{ error }}</p>
