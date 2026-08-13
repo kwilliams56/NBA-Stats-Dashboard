@@ -155,6 +155,17 @@ http://127.0.0.1:5000
 
 This app supports persistent caching with Render Key Value/Redis so NBA API data can survive Render restarts and deployments.
 
+## Emergency BALLDONTLIE Provider Mode
+
+Render may be unable to reliably reach `stats.nba.com`. For production, set the app to use BALLDONTLIE's free-plan endpoints for fast basic player and team pages:
+
+```text
+DATA_PROVIDER=balldontlie
+BALLDONTLIE_API_KEY=<your BALLDONTLIE API key>
+```
+
+In this mode, the homepage, search, fuzzy suggestions, player profile routes, team pages, favorites, and navigation stay functional without calling `stats.nba.com`. Advanced stat-heavy sections show a professional temporary unavailable message until the provider migration is completed.
+
 ## Render Environment Variables
 
 Create a Render Key Value instance, then add these environment variables to the web service:
@@ -162,6 +173,8 @@ Create a Render Key Value instance, then add these environment variables to the 
 ```text
 REDIS_URL=<your Render Key Value internal Redis URL>
 CACHE_PREWARM_TOKEN=<a long private random token>
+DATA_PROVIDER=balldontlie
+BALLDONTLIE_API_KEY=<your BALLDONTLIE API key>
 ```
 
 When `REDIS_URL` is present, the app uses Redis for Flask-Caching. When it is not present, the app uses local `SimpleCache` for development.
@@ -182,6 +195,30 @@ curl -X POST https://nba-stats-dashboard.onrender.com/admin/prewarm-cache \
 ```
 
 The endpoint returns JSON showing which datasets succeeded or failed. Do not put the token in the URL.
+
+## Seed Render Redis From Your Computer
+
+If Render cannot reliably reach `stats.nba.com`, use Render Key Value's External URL to seed the same Redis cache from your local machine.
+
+In Render, open your Key Value instance and copy the External Redis URL. Set it locally without committing it:
+
+```powershell
+$env:REDIS_EXTERNAL_URL="<your Render Key Value External URL>"
+```
+
+Dry-run first to fetch NBA data without writing to Redis:
+
+```powershell
+python seed_redis_cache.py --dry-run
+```
+
+Seed the Redis cache:
+
+```powershell
+python seed_redis_cache.py
+```
+
+The script prints a concise success/failure summary and never prints the Redis URL.
 
 ## Render Health Check
 

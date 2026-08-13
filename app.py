@@ -5,10 +5,12 @@ import json
 import os
 import hashlib
 import pickle
+from urllib.parse import quote_plus
 import threading
 import time
 import unicodedata
 
+import requests
 from flask import (
     Flask,
     g,
@@ -21,7 +23,6 @@ from flask import (
 from flask_caching import Cache
 from nba_api.stats.static import players, teams as nba_teams
 from nba_api.stats.endpoints import (
-    commonplayerinfo,
     commonteamroster,
     leaguedashplayerstats,
     playerawards,
@@ -42,6 +43,13 @@ STALE_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60
 CACHE_NOTICE = "Live NBA data is temporarily unavailable. Showing cached data."
 NBA_API_TIMEOUT_SECONDS = 15
 CAREER_API_TIMEOUT_SECONDS = 15
+DATA_PROVIDER = os.environ.get("DATA_PROVIDER", "nba_api").strip().lower()
+BALLDONTLIE_API_BASE_URL = "https://api.balldontlie.io/v1"
+BALLDONTLIE_API_TIMEOUT_SECONDS = 6
+ADVANCED_STATS_UNAVAILABLE_MESSAGE = (
+    "Advanced statistics are temporarily unavailable while the data provider "
+    "is being upgraded."
+)
 
 redis_url = os.environ.get("REDIS_URL")
 
@@ -68,7 +76,11 @@ def make_cache_key(function, args, kwargs):
         (function.__module__, function.__name__, args, tuple(sorted(kwargs.items()))),
         protocol=pickle.HIGHEST_PROTOCOL,
     )
-    return f"nba_api:{function.__name__}:{hashlib.sha256(payload).hexdigest()}"
+    return f"{DATA_PROVIDER}:{function.__name__}:{hashlib.sha256(payload).hexdigest()}"
+
+
+def using_balldontlie():
+    return DATA_PROVIDER == "balldontlie"
 
 
 def mark_cached_data_notice():
@@ -258,6 +270,181 @@ similar_player_pool = [
     "LaMelo Ball",
 ]
 
+emergency_search_player_names = sorted(
+    set(
+        similar_player_pool
+        + COMMON_PREWARM_PLAYERS
+        + [
+            "Michael Jordan",
+            "Larry Bird",
+            "Magic Johnson",
+            "Wilt Chamberlain",
+            "Kareem Abdul-Jabbar",
+            "Shaquille O'Neal",
+            "Kobe Bryant",
+            "Tim Duncan",
+            "Dirk Nowitzki",
+            "Dwyane Wade",
+            "Allen Iverson",
+            "James Harden",
+            "Russell Westbrook",
+            "Chris Paul",
+            "Seth Curry",
+            "Austin Reaves",
+            "Rui Hachimura",
+            "Jaxson Hayes",
+            "Jarred Vanderbilt",
+            "Marcus Smart",
+            "Deandre Ayton",
+            "Cooper Flagg",
+        ]
+    )
+)
+
+
+class BalldontlieProviderError(RuntimeError):
+    pass
+
+
+def get_balldontlie_headers():
+    api_key = os.environ.get("BALLDONTLIE_API_KEY")
+
+    if not api_key:
+        raise BalldontlieProviderError("BALLDONTLIE_API_KEY is not configured.")
+
+    return {"Authorization": api_key}
+
+
+def balldontlie_request(path, params=None):
+    try:
+        response = requests.get(
+            f"{BALLDONTLIE_API_BASE_URL}{path}",
+            headers=get_balldontlie_headers(),
+            params=params,
+            timeout=BALLDONTLIE_API_TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
+    except requests.Timeout as error:
+        raise BalldontlieProviderError("BALLDONTLIE request timed out.") from error
+    except requests.RequestException as error:
+        raise BalldontlieProviderError("BALLDONTLIE request failed.") from error
+
+    return response.json()
+
+
+def balldontlie_player_name(player):
+    return f"{player.get('first_name', '')} {player.get('last_name', '')}".strip()
+
+
+def normalize_balldontlie_player(player):
+    team = player.get("team") or {}
+    team_abbr = safe_text(team.get("abbreviation"), "NBA")
+    full_name = balldontlie_player_name(player)
+
+    return {
+        "id": player.get("id"),
+        "full_name": full_name,
+        "first_name": player.get("first_name"),
+        "last_name": player.get("last_name"),
+        "team": team,
+        "team_abbr": team_abbr,
+    }
+
+
+@ttl_cache(PLAYER_CACHE_TTL_SECONDS)
+def get_balldontlie_players(search=None, team_id=None, limit=25):
+    params = {"per_page": min(limit, 100)}
+
+    if search:
+        params["search"] = search
+
+    if team_id:
+        params["team_ids[]"] = team_id
+
+    payload = balldontlie_request("/players", params=params)
+    return [
+        normalize_balldontlie_player(player)
+        for player in payload.get("data", [])
+        if balldontlie_player_name(player)
+    ]
+
+
+@ttl_cache(PLAYER_CACHE_TTL_SECONDS)
+def get_balldontlie_player_by_id(player_id):
+    payload = balldontlie_request(f"/players/{player_id}")
+    return normalize_balldontlie_player(payload.get("data", {}))
+
+
+@ttl_cache(TEAM_CACHE_TTL_SECONDS)
+def get_balldontlie_teams():
+    payload = balldontlie_request("/teams", params={"per_page": 100})
+    return payload.get("data", [])
+
+
+def get_balldontlie_team_by_abbr(team_abbr):
+    for team in get_balldontlie_teams():
+        if safe_text(team.get("abbreviation")).upper() == team_abbr.upper():
+            return team
+    return None
+
+
+def get_searchable_players(player_name):
+    if not using_balldontlie():
+        return players.get_players()
+
+    player_name = player_name.strip()
+    api_players = []
+
+    if player_name:
+        try:
+            api_players = get_balldontlie_players(player_name, limit=25)
+        except Exception:
+            app.logger.warning("BALLDONTLIE player search failed")
+
+    known_players = [
+        {"id": f"name:{name}", "full_name": name}
+        for name in emergency_search_player_names
+    ]
+    merged = {normalize_player_name(player["full_name"]): player for player in known_players}
+
+    for player in api_players:
+        merged[normalize_player_name(player["full_name"])] = player
+
+    return list(merged.values())
+
+
+def build_balldontlie_profile(player):
+    full_name = player["full_name"]
+    team_abbr = safe_text(player.get("team_abbr"), "NBA")
+    player_id = player.get("id")
+
+    return {
+        "id": player_id,
+        "name": full_name,
+        "team_name": team_names.get(team_abbr, team_abbr),
+        "team_logo": team_logos.get(team_abbr),
+        "season": "Provider Upgrade",
+        "games": 0,
+        "ppg": 0,
+        "rpg": 0,
+        "apg": 0,
+        "spg": 0,
+        "bpg": 0,
+        "fg_pct": 0,
+        "fg3_pct": 0,
+        "ft_pct": 0,
+        "career_points": 0,
+        "career_rebounds": 0,
+        "career_assists": 0,
+        "career_table": [],
+        "image_url": (
+            "https://ui-avatars.com/api/?background=111827&color=ffffff"
+            f"&bold=true&name={quote_plus(full_name)}"
+        ),
+        "advanced_stats_unavailable": True,
+        "advanced_stats_message": ADVANCED_STATS_UNAVAILABLE_MESSAGE,
+    }
+
 
 def normalize_player_name(player_name):
     normalized = unicodedata.normalize("NFKD", player_name)
@@ -385,6 +572,36 @@ def get_regular_season_career(player_id):
 
 @ttl_cache(PLAYER_CACHE_TTL_SECONDS)
 def get_player_stats(player_name):
+    if using_balldontlie():
+        player_name = player_name.strip()
+
+        if player_name.startswith("bdl:"):
+            player = get_balldontlie_player_by_id(player_name.split(":", 1)[1])
+            return build_balldontlie_profile(player) if player else None
+
+        matches = find_matching_players(player_name, get_searchable_players(player_name))
+
+        if not matches:
+            return None
+
+        selected_player = matches[0]
+
+        if str(selected_player.get("id", "")).startswith("name:"):
+            try:
+                api_matches = get_balldontlie_players(selected_player["full_name"], limit=10)
+            except Exception:
+                api_matches = []
+            exact_api_matches = find_matching_players(
+                selected_player["full_name"],
+                api_matches,
+            )
+            selected_player = exact_api_matches[0] if exact_api_matches else selected_player
+
+        if str(selected_player.get("id", "")).startswith("name:"):
+            return build_balldontlie_profile(selected_player)
+
+        return build_balldontlie_profile(selected_player)
+
     all_players = players.get_players()
 
     matching_players = find_matching_players(player_name, all_players)
@@ -457,6 +674,9 @@ def get_player_stats(player_name):
 
 @ttl_cache(AWARDS_CACHE_TTL_SECONDS)
 def get_player_awards(player_id):
+    if using_balldontlie():
+        return []
+
     awards_data = playerawards.PlayerAwards(
         player_id=player_id,
         timeout=NBA_API_TIMEOUT_SECONDS,
@@ -551,6 +771,9 @@ def get_similarity_tags(player, candidate):
 
 @ttl_cache(SIMILAR_CACHE_TTL_SECONDS)
 def get_similar_players(player_name, limit=4):
+    if using_balldontlie():
+        return []
+
     player = get_cached_function_value(get_player_stats, player_name)
 
     if not player:
@@ -591,6 +814,9 @@ def get_similar_players(player_name, limit=4):
 
 @ttl_cache(LEADERS_CACHE_TTL_SECONDS)
 def get_league_leaders(limit=5):
+    if using_balldontlie():
+        return []
+
     leader_categories = {
         "ppg": {"title": "Points Per Game", "label": "PPG", "format": "number"},
         "rpg": {"title": "Rebounds Per Game", "label": "RPG", "format": "number"},
@@ -645,6 +871,9 @@ def get_league_leaders(limit=5):
 
 @ttl_cache(TRENDING_CACHE_TTL_SECONDS)
 def get_trending_players(season, limit=6):
+    if using_balldontlie():
+        return []
+
     recent_stats = leaguedashplayerstats.LeagueDashPlayerStats(
         last_n_games=5,
         league_id_nullable="00",
@@ -697,6 +926,20 @@ def record_prewarm_result(results, name, callback):
 def prewarm_cache():
     results = {}
     season = get_current_nba_season()
+
+    if using_balldontlie():
+        record_prewarm_result(
+            results,
+            "balldontlie_teams",
+            get_balldontlie_teams,
+        )
+        for player_name in COMMON_PREWARM_PLAYERS:
+            record_prewarm_result(
+                results,
+                f"player_profile:{player_name}",
+                lambda player_name=player_name: get_player_stats(player_name),
+            )
+        return results
 
     record_prewarm_result(
         results,
@@ -777,45 +1020,6 @@ def health_check():
     return {"status": "ok"}, 200
 
 
-@app.route("/debug/nba-api-test")
-def nba_api_debug_test():
-    player_id = request.args.get("player_id", "201939")
-    started_at = time.monotonic()
-
-    try:
-        response = commonplayerinfo.CommonPlayerInfo(
-            player_id=player_id,
-            timeout=NBA_API_TIMEOUT_SECONDS,
-        )
-        frames = response.get_data_frames()
-        elapsed_ms = round((time.monotonic() - started_at) * 1000)
-
-        return {
-            "ok": True,
-            "endpoint": "CommonPlayerInfo",
-            "player_id": player_id,
-            "timeout_seconds": NBA_API_TIMEOUT_SECONDS,
-            "response_time_ms": elapsed_ms,
-            "data_frames": len(frames),
-            "rows": sum(len(frame) for frame in frames),
-        }
-    except Exception as error:
-        elapsed_ms = round((time.monotonic() - started_at) * 1000)
-
-        return (
-            {
-                "ok": False,
-                "endpoint": "CommonPlayerInfo",
-                "player_id": player_id,
-                "timeout_seconds": NBA_API_TIMEOUT_SECONDS,
-                "response_time_ms": elapsed_ms,
-                "error_type": type(error).__name__,
-                "error": str(error),
-            },
-            502,
-        )
-
-
 @app.route("/", methods=["GET", "POST"])
 def home():
     if request.method == "HEAD":
@@ -838,15 +1042,24 @@ def home():
     if request.method == "POST":
         player_name = request.form.get("player_name", "").strip()
         selected_player_id = request.form.get("player_id")
-        all_players = players.get_players()
 
         if selected_player_id:
-            matching_players = [
-                player
-                for player in all_players
-                if str(player["id"]) == selected_player_id
-            ]
+            if using_balldontlie() and not selected_player_id.startswith("name:"):
+                selected_id = selected_player_id.split(":", 1)[-1]
+                try:
+                    selected = get_balldontlie_player_by_id(selected_id)
+                except Exception:
+                    selected = None
+                matching_players = [selected] if selected else []
+            else:
+                all_players = get_searchable_players(player_name)
+                matching_players = [
+                    player
+                    for player in all_players
+                    if str(player["id"]) == selected_player_id
+                ]
         else:
+            all_players = get_searchable_players(player_name)
             matching_players = find_matching_players(player_name, all_players)
 
         if len(matching_players) > 1 and not selected_player_id:
@@ -882,6 +1095,16 @@ def compare():
     error = None
 
     if request.method == "POST":
+        if using_balldontlie():
+            error = ADVANCED_STATS_UNAVAILABLE_MESSAGE
+            return render_template(
+                "compare.html",
+                player1=player1,
+                player2=player2,
+                error=error,
+                cached_data_notice=get_cached_data_notice(),
+            )
+
         player1_name = request.form.get("player1", "").strip()
         player2_name = request.form.get("player2", "").strip()
 
@@ -908,6 +1131,14 @@ def compare():
 def league_leaders():
     error = None
 
+    if using_balldontlie():
+        return render_template(
+            "leaders.html",
+            leaders=[],
+            error=ADVANCED_STATS_UNAVAILABLE_MESSAGE,
+            cached_data_notice=None,
+        )
+
     try:
         leaders = get_league_leaders()
     except Exception:
@@ -931,6 +1162,9 @@ def get_current_nba_season():
 
 @ttl_cache(TEAM_CACHE_TTL_SECONDS)
 def get_team_stats(team_id, season):
+    if using_balldontlie():
+        return None
+
     dashboard = teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits(
         team_id=team_id,
         season=season,
@@ -961,6 +1195,29 @@ def get_team_stats(team_id, season):
 
 @ttl_cache(TEAM_CACHE_TTL_SECONDS)
 def get_team_roster(team_id, season):
+    if using_balldontlie():
+        roster = []
+
+        for player in get_balldontlie_players(team_id=team_id, limit=100):
+            roster.append(
+                {
+                    "id": player["id"],
+                    "name": player["full_name"],
+                    "number": "--",
+                    "position": "--",
+                    "height": "--",
+                    "weight": "--",
+                    "age": "--",
+                    "experience": "--",
+                    "image_url": (
+                        "https://ui-avatars.com/api/?background=111827&color=ffffff"
+                        f"&bold=true&name={quote_plus(player['full_name'])}"
+                    ),
+                }
+            )
+
+        return roster
+
     response = commonteamroster.CommonTeamRoster(
         team_id=team_id,
         season=season,
@@ -1030,9 +1287,18 @@ def team_profile(team_abbr):
     if team_abbr not in team_names:
         return render_template("team.html", team=None, error="Team not found.")
 
-    nba_team = nba_teams.find_team_by_abbreviation(team_abbr)
+    if using_balldontlie():
+        try:
+            provider_team = get_balldontlie_team_by_abbr(team_abbr)
+        except Exception:
+            provider_team = None
+        team_id = provider_team.get("id") if provider_team else None
+    else:
+        nba_team = nba_teams.find_team_by_abbreviation(team_abbr)
+        team_id = nba_team["id"] if nba_team else None
+
     team = {
-        "id": nba_team["id"] if nba_team else None,
+        "id": team_id,
         "abbr": team_abbr,
         "name": team_names[team_abbr],
         "logo": team_logos.get(team_abbr),
@@ -1045,10 +1311,13 @@ def team_profile(team_abbr):
     season = get_current_nba_season()
 
     if team["id"]:
-        try:
-            stats = get_team_stats(team["id"], season)
-        except Exception:
-            stats_error = "Team statistics are temporarily unavailable."
+        if using_balldontlie():
+            stats_error = ADVANCED_STATS_UNAVAILABLE_MESSAGE
+        else:
+            try:
+                stats = get_team_stats(team["id"], season)
+            except Exception:
+                stats_error = "Team statistics are temporarily unavailable."
 
         try:
             roster = get_team_roster(team["id"], season)
@@ -1100,7 +1369,9 @@ def player_profile(player_name):
     awards = []
     awards_error = None
 
-    if get_cached_data_notice():
+    if player.get("advanced_stats_unavailable"):
+        awards_error = ADVANCED_STATS_UNAVAILABLE_MESSAGE
+    elif get_cached_data_notice():
         awards_error = "Player accomplishments are temporarily unavailable."
     else:
         try:
@@ -1111,12 +1382,16 @@ def player_profile(player_name):
 
     similar_error = None
 
-    try:
-        similar_players = get_similar_players(player["name"])
-    except Exception:
-        app.logger.exception("Unable to load similar players for %s", player["id"])
+    if player.get("advanced_stats_unavailable"):
         similar_players = []
-        similar_error = "Similar players are temporarily unavailable."
+        similar_error = ADVANCED_STATS_UNAVAILABLE_MESSAGE
+    else:
+        try:
+            similar_players = get_similar_players(player["name"])
+        except Exception:
+            app.logger.exception("Unable to load similar players for %s", player["id"])
+            similar_players = []
+            similar_error = "Similar players are temporarily unavailable."
 
     return render_template(
         "player.html",

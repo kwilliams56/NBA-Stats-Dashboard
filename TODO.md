@@ -4,7 +4,7 @@
 # NBA Analytics Dashboard TODO
 
 ## Next Feature
-- [ ] Better error handling
+- [ ] Complete BALLDONTLIE stat provider migration
 
 ## Homepage
 - [x] ESPN-style hero section
@@ -63,6 +63,8 @@
 - [x] Render player profile timeout protection
 - [x] Render health check avoids NBA API calls
 - [x] Persistent Redis cache for Render
+- [x] Local Redis cache seeding script
+- [x] Emergency BALLDONTLIE production provider mode
 
 ## Polish
 - [x] Portfolio footer and About page
