@@ -5,6 +5,7 @@ import json
 import os
 import hashlib
 import pickle
+from pathlib import Path
 from urllib.parse import quote_plus
 import threading
 import time
@@ -50,6 +51,7 @@ ADVANCED_STATS_UNAVAILABLE_MESSAGE = (
     "Advanced statistics are temporarily unavailable while the data provider "
     "is being upgraded."
 )
+STAT_SNAPSHOT_PATH = Path(__file__).resolve().parent / "data" / "stat_snapshot.json"
 
 redis_url = os.environ.get("REDIS_URL")
 
@@ -388,6 +390,89 @@ def get_balldontlie_team_by_abbr(team_abbr):
     return None
 
 
+def load_stat_snapshot():
+    if not STAT_SNAPSHOT_PATH.exists():
+        return {"players": {}, "teams": {}, "trending_players": []}
+
+    try:
+        with STAT_SNAPSHOT_PATH.open("r", encoding="utf-8") as snapshot_file:
+            snapshot = json.load(snapshot_file)
+    except (OSError, json.JSONDecodeError):
+        app.logger.warning("Unable to load local stat snapshot")
+        return {"players": {}, "teams": {}, "trending_players": []}
+
+    snapshot.setdefault("players", {})
+    snapshot.setdefault("teams", {})
+    snapshot.setdefault("trending_players", [])
+    return snapshot
+
+
+def get_snapshot_players():
+    return load_stat_snapshot().get("players", {})
+
+
+def get_snapshot_player(player_name):
+    normalized_query = normalize_player_name(player_name)
+    snapshot_players = get_snapshot_players()
+
+    if normalized_query in snapshot_players:
+        return snapshot_players[normalized_query]
+
+    for normalized_name, player in snapshot_players.items():
+        if normalized_query and normalized_query in normalized_name:
+            return player
+
+    return None
+
+
+def get_snapshot_team(team_abbr):
+    return load_stat_snapshot().get("teams", {}).get(team_abbr.upper(), {})
+
+
+def get_snapshot_team_for_key(team_key):
+    team_key = str(team_key).upper()
+
+    if team_key in team_names:
+        return team_key, get_snapshot_team(team_key)
+
+    for abbr, team in load_stat_snapshot().get("teams", {}).items():
+        if str(team.get("id")) == str(team_key):
+            return abbr, team
+
+    return team_key, {}
+
+
+def add_player_identity_defaults(player):
+    player = player.copy()
+    team_abbr = safe_text(player.get("team_abbr") or player.get("team"), "NBA")
+
+    player.setdefault("team_name", team_names.get(team_abbr, team_abbr))
+    player.setdefault("team_logo", team_logos.get(team_abbr))
+    player.setdefault(
+        "image_url",
+        (
+            "https://ui-avatars.com/api/?background=111827&color=ffffff"
+            f"&bold=true&name={quote_plus(player.get('name', 'NBA Player'))}"
+        ),
+    )
+    player.setdefault("advanced_stats_unavailable", False)
+    player.setdefault("advanced_stats_message", None)
+    player.setdefault("career_table", [])
+    player.setdefault("games", 0)
+    player.setdefault("ppg", 0)
+    player.setdefault("rpg", 0)
+    player.setdefault("apg", 0)
+    player.setdefault("spg", 0)
+    player.setdefault("bpg", 0)
+    player.setdefault("fg_pct", 0)
+    player.setdefault("fg3_pct", 0)
+    player.setdefault("ft_pct", 0)
+    player.setdefault("career_points", 0)
+    player.setdefault("career_rebounds", 0)
+    player.setdefault("career_assists", 0)
+    return player
+
+
 def get_searchable_players(player_name):
     if not using_balldontlie():
         return players.get_players()
@@ -405,6 +490,13 @@ def get_searchable_players(player_name):
         {"id": f"name:{name}", "full_name": name}
         for name in emergency_search_player_names
     ]
+    known_players.extend(
+        {
+            "id": f"snapshot:{player.get('id', normalized_name)}",
+            "full_name": player.get("name", normalized_name),
+        }
+        for normalized_name, player in get_snapshot_players().items()
+    )
     merged = {normalize_player_name(player["full_name"]): player for player in known_players}
 
     for player in api_players:
@@ -417,6 +509,18 @@ def build_balldontlie_profile(player):
     full_name = player["full_name"]
     team_abbr = safe_text(player.get("team_abbr"), "NBA")
     player_id = player.get("id")
+    snapshot_player = get_snapshot_player(full_name)
+
+    if snapshot_player:
+        profile = add_player_identity_defaults(snapshot_player)
+        profile["id"] = profile.get("id") or player_id
+        profile["name"] = profile.get("name") or full_name
+        profile["team_name"] = profile.get("team_name") or team_names.get(
+            team_abbr,
+            team_abbr,
+        )
+        profile["team_logo"] = profile.get("team_logo") or team_logos.get(team_abbr)
+        return profile
 
     return {
         "id": player_id,
@@ -772,7 +876,28 @@ def get_similarity_tags(player, candidate):
 @ttl_cache(SIMILAR_CACHE_TTL_SECONDS)
 def get_similar_players(player_name, limit=4):
     if using_balldontlie():
-        return []
+        player = get_snapshot_player(player_name)
+
+        if not player:
+            return []
+
+        player = add_player_identity_defaults(player)
+        matches = []
+
+        for candidate in get_snapshot_players().values():
+            candidate = add_player_identity_defaults(candidate)
+
+            if normalize_player_name(candidate["name"]) == normalize_player_name(player["name"]):
+                continue
+
+            score = get_similarity_score(player, candidate)
+            candidate["similarity_score"] = max(0, round(100 - (score * 12), 0))
+            candidate["similarity_tags"] = get_similarity_tags(player, candidate)
+            matches.append(candidate)
+
+        return sorted(matches, key=lambda match: match["similarity_score"], reverse=True)[
+            :limit
+        ]
 
     player = get_cached_function_value(get_player_stats, player_name)
 
@@ -814,9 +939,6 @@ def get_similar_players(player_name, limit=4):
 
 @ttl_cache(LEADERS_CACHE_TTL_SECONDS)
 def get_league_leaders(limit=5):
-    if using_balldontlie():
-        return []
-
     leader_categories = {
         "ppg": {"title": "Points Per Game", "label": "PPG", "format": "number"},
         "rpg": {"title": "Rebounds Per Game", "label": "RPG", "format": "number"},
@@ -839,6 +961,28 @@ def get_league_leaders(limit=5):
             "format": "percent",
         },
     }
+
+    if using_balldontlie():
+        player_pool = [
+            add_player_identity_defaults(player)
+            for player in get_snapshot_players().values()
+        ]
+
+        return [
+            {
+                "key": stat,
+                "title": category["title"],
+                "label": category["label"],
+                "format": category["format"],
+                "players": sorted(
+                    player_pool,
+                    key=lambda player: player.get(stat, 0),
+                    reverse=True,
+                )[:limit],
+            }
+            for stat, category in leader_categories.items()
+        ]
+
     player_pool = []
 
     for player_name in similar_player_pool:
@@ -872,7 +1016,28 @@ def get_league_leaders(limit=5):
 @ttl_cache(TRENDING_CACHE_TTL_SECONDS)
 def get_trending_players(season, limit=6):
     if using_balldontlie():
-        return []
+        snapshot = load_stat_snapshot()
+        trending_players = snapshot.get("trending_players") or []
+
+        if not trending_players:
+            trending_players = sorted(
+                get_snapshot_players().values(),
+                key=lambda player: player.get("ppg", 0),
+                reverse=True,
+            )[:limit]
+
+        return [
+            {
+                "id": player.get("id"),
+                "name": player.get("name"),
+                "team": player.get("team_abbr") or player.get("team", "NBA"),
+                "ppg": player.get("ppg", 0),
+                "rpg": player.get("rpg", 0),
+                "apg": player.get("apg", 0),
+                "image_url": add_player_identity_defaults(player)["image_url"],
+            }
+            for player in trending_players[:limit]
+        ]
 
     recent_stats = leaguedashplayerstats.LeagueDashPlayerStats(
         last_n_games=5,
@@ -1044,7 +1209,11 @@ def home():
         selected_player_id = request.form.get("player_id")
 
         if selected_player_id:
-            if using_balldontlie() and not selected_player_id.startswith("name:"):
+            if (
+                using_balldontlie()
+                and not selected_player_id.startswith("name:")
+                and not selected_player_id.startswith("snapshot:")
+            ):
                 selected_id = selected_player_id.split(":", 1)[-1]
                 try:
                     selected = get_balldontlie_player_by_id(selected_id)
@@ -1095,16 +1264,6 @@ def compare():
     error = None
 
     if request.method == "POST":
-        if using_balldontlie():
-            error = ADVANCED_STATS_UNAVAILABLE_MESSAGE
-            return render_template(
-                "compare.html",
-                player1=player1,
-                player2=player2,
-                error=error,
-                cached_data_notice=get_cached_data_notice(),
-            )
-
         player1_name = request.form.get("player1", "").strip()
         player2_name = request.form.get("player2", "").strip()
 
@@ -1117,6 +1276,12 @@ def compare():
         else:
             if not player1 or not player2:
                 error = "One or both players could not be found."
+            elif player1.get("advanced_stats_unavailable") or player2.get(
+                "advanced_stats_unavailable"
+            ):
+                player1 = None
+                player2 = None
+                error = ADVANCED_STATS_UNAVAILABLE_MESSAGE
 
     return render_template(
         "compare.html",
@@ -1131,20 +1296,15 @@ def compare():
 def league_leaders():
     error = None
 
-    if using_balldontlie():
-        return render_template(
-            "leaders.html",
-            leaders=[],
-            error=ADVANCED_STATS_UNAVAILABLE_MESSAGE,
-            cached_data_notice=None,
-        )
-
     try:
         leaders = get_league_leaders()
     except Exception:
         app.logger.exception("Unable to load league leaders")
         leaders = []
         error = "League leaders are temporarily unavailable. Please try again."
+    else:
+        if using_balldontlie() and not any(category["players"] for category in leaders):
+            error = ADVANCED_STATS_UNAVAILABLE_MESSAGE
 
     return render_template(
         "leaders.html",
@@ -1163,7 +1323,9 @@ def get_current_nba_season():
 @ttl_cache(TEAM_CACHE_TTL_SECONDS)
 def get_team_stats(team_id, season):
     if using_balldontlie():
-        return None
+        _, team = get_snapshot_team_for_key(team_id)
+        stats = team.get("stats")
+        return stats if stats else None
 
     dashboard = teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits(
         team_id=team_id,
@@ -1196,6 +1358,10 @@ def get_team_stats(team_id, season):
 @ttl_cache(TEAM_CACHE_TTL_SECONDS)
 def get_team_roster(team_id, season):
     if using_balldontlie():
+        _, team = get_snapshot_team_for_key(team_id)
+        if team.get("roster"):
+            return team["roster"]
+
         roster = []
 
         for player in get_balldontlie_players(team_id=team_id, limit=100):
@@ -1312,7 +1478,13 @@ def team_profile(team_abbr):
 
     if team["id"]:
         if using_balldontlie():
-            stats_error = ADVANCED_STATS_UNAVAILABLE_MESSAGE
+            try:
+                stats = get_team_stats(team_abbr, season)
+            except Exception:
+                stats = None
+
+            if not stats:
+                stats_error = ADVANCED_STATS_UNAVAILABLE_MESSAGE
         else:
             try:
                 stats = get_team_stats(team["id"], season)

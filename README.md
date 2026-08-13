@@ -166,6 +166,32 @@ BALLDONTLIE_API_KEY=<your BALLDONTLIE API key>
 
 In this mode, the homepage, search, fuzzy suggestions, player profile routes, team pages, favorites, and navigation stay functional without calling `stats.nba.com`. Advanced stat-heavy sections show a professional temporary unavailable message until the provider migration is completed.
 
+## Free Stat Snapshot Mode
+
+To keep the live site free and avoid Render timeouts, real stats can be seeded locally from your computer into `data/stat_snapshot.json`. Render then reads that committed snapshot and does not call `stats.nba.com` during normal page loads.
+
+Generate the snapshot locally:
+
+```powershell
+$env:DATA_PROVIDER="nba_api"
+python seed_stat_snapshot.py
+```
+
+For a faster player-only refresh:
+
+```powershell
+python seed_stat_snapshot.py --skip-teams
+```
+
+After the script finishes, commit `data/stat_snapshot.json`. On Render, keep:
+
+```text
+DATA_PROVIDER=balldontlie
+BALLDONTLIE_API_KEY=<your BALLDONTLIE API key>
+```
+
+With that setup, BALLDONTLIE handles player/team identity while the app displays real stats from the local snapshot.
+
 ## Render Environment Variables
 
 Create a Render Key Value instance, then add these environment variables to the web service:
