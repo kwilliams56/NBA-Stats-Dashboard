@@ -65,6 +65,7 @@
 - [x] Persistent Redis cache for Render
 - [x] Local Redis cache seeding script
 - [x] Emergency BALLDONTLIE production provider mode
+- [x] Free local stat snapshot provider
 
 ## Polish
 - [x] Portfolio footer and About page
