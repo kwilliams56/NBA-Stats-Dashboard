@@ -13,6 +13,91 @@ from pathlib import Path
 
 
 DEFAULT_EXTRA_PLAYERS = [
+    "AJ Green",
+    "Aaron Gordon",
+    "Al Horford",
+    "Amen Thompson",
+    "Andrew Nembhard",
+    "Andrew Wiggins",
+    "Anfernee Simons",
+    "Anthony Black",
+    "Austin Reaves",
+    "Bennedict Mathurin",
+    "Bilal Coulibaly",
+    "Bogdan Bogdanovic",
+    "Bradley Beal",
+    "Brandon Ingram",
+    "Brandin Podziemski",
+    "Brook Lopez",
+    "Cade Cunningham",
+    "Cameron Johnson",
+    "Chet Holmgren",
+    "CJ McCollum",
+    "Clint Capela",
+    "Coby White",
+    "Collin Sexton",
+    "Cooper Flagg",
+    "Darius Garland",
+    "Deandre Ayton",
+    "Dejounte Murray",
+    "Dennis Schroder",
+    "Derrick White",
+    "Desmond Bane",
+    "Devin Vassell",
+    "Donte DiVincenzo",
+    "Draymond Green",
+    "Duncan Robinson",
+    "Dylan Harper",
+    "Evan Mobley",
+    "Fred VanVleet",
+    "Franz Wagner",
+    "Herbert Jones",
+    "Immanuel Quickley",
+    "Isaiah Hartenstein",
+    "Ivica Zubac",
+    "Jabari Smith Jr.",
+    "Jaden Ivey",
+    "Jaden McDaniels",
+    "Jalen Duren",
+    "Jalen Green",
+    "Jalen Johnson",
+    "Jalen Suggs",
+    "Jamal Murray",
+    "Jarrett Allen",
+    "Jaxson Hayes",
+    "Jerami Grant",
+    "Jeremy Sochan",
+    "Jrue Holiday",
+    "Julius Randle",
+    "Keegan Murray",
+    "Kentavious Caldwell-Pope",
+    "Khris Middleton",
+    "Kristaps Porzingis",
+    "Kyle Kuzma",
+    "Lauri Markkanen",
+    "Lonzo Ball",
+    "Malik Monk",
+    "Marcus Smart",
+    "Mark Williams",
+    "Mikal Bridges",
+    "Miles Bridges",
+    "Myles Turner",
+    "Naz Reid",
+    "Norman Powell",
+    "OG Anunoby",
+    "Pascal Siakam",
+    "Payton Pritchard",
+    "RJ Barrett",
+    "Reed Sheppard",
+    "Rui Hachimura",
+    "Scoot Henderson",
+    "Scottie Barnes",
+    "Tobias Harris",
+    "Tyler Herro",
+    "Tyrese Maxey",
+    "Walker Kessler",
+    "Zach LaVine",
+    "Zaccharie Risacher",
     "Michael Jordan",
     "Larry Bird",
     "Magic Johnson",
@@ -28,8 +113,6 @@ DEFAULT_EXTRA_PLAYERS = [
     "Russell Westbrook",
     "Chris Paul",
     "Seth Curry",
-    "Austin Reaves",
-    "Rui Hachimura",
 ]
 
 
@@ -41,6 +124,21 @@ def parse_args():
         "--players",
         nargs="*",
         help="Optional player names to seed instead of the default player list.",
+    )
+    parser.add_argument(
+        "--active-players",
+        action="store_true",
+        help="Seed every active player from nba_api's local player directory.",
+    )
+    parser.add_argument(
+        "--all-players",
+        action="store_true",
+        help="Seed every player from nba_api's local player directory.",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help="Limit how many player names are seeded after the list is built.",
     )
     parser.add_argument(
         "--skip-teams",
@@ -101,6 +199,30 @@ def build_trending_players(players, limit=6):
     )[:limit]
 
 
+def build_player_name_list(dashboard, args):
+    if args.players:
+        player_names = args.players
+    elif args.all_players:
+        player_names = [player["full_name"] for player in dashboard.players.get_players()]
+    elif args.active_players:
+        player_names = [
+            player["full_name"] for player in dashboard.players.get_active_players()
+        ]
+    else:
+        player_names = (
+            dashboard.COMMON_PREWARM_PLAYERS
+            + dashboard.similar_player_pool
+            + DEFAULT_EXTRA_PLAYERS
+        )
+
+    unique_names = sorted(set(player_names))
+
+    if args.limit:
+        return unique_names[: args.limit]
+
+    return unique_names
+
+
 def print_result(label, ok, detail):
     status = "OK" if ok else "FAIL"
     print(f"{status} {label} - {detail}")
@@ -109,13 +231,7 @@ def print_result(label, ok, detail):
 def main():
     args = parse_args()
     dashboard = load_dashboard()
-    player_names = args.players or sorted(
-        set(
-            dashboard.COMMON_PREWARM_PLAYERS
-            + dashboard.similar_player_pool
-            + DEFAULT_EXTRA_PLAYERS
-        )
-    )
+    player_names = build_player_name_list(dashboard, args)
     players = {}
     teams = {}
 
