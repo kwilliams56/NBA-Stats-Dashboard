@@ -177,6 +177,18 @@ $env:DATA_PROVIDER="nba_api"
 python seed_stat_snapshot.py
 ```
 
+Seed every active player:
+
+```powershell
+python seed_stat_snapshot.py --active-players
+```
+
+Seed a larger capped set from the full NBA player directory:
+
+```powershell
+python seed_stat_snapshot.py --all-players --limit 300 --skip-teams
+```
+
 For a faster player-only refresh:
 
 ```powershell

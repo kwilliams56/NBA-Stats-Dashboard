@@ -10,6 +10,7 @@
 - [x] ESPN-style hero section
 - [x] Trending Players
 - [x] Data-driven trending players
+- [x] Snapshot-backed trending players in production mode
 - [x] Direct homepage search to player profiles
 - [x] Fuzzy player search with Did You Mean suggestions
 - [x] Feature cards
@@ -66,6 +67,7 @@
 - [x] Local Redis cache seeding script
 - [x] Emergency BALLDONTLIE production provider mode
 - [x] Free local stat snapshot provider
+- [x] Expanded local stat snapshot seeding options
 
 ## Polish
 - [x] Portfolio footer and About page

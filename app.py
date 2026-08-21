@@ -442,6 +442,31 @@ def get_snapshot_team_for_key(team_key):
     return team_key, {}
 
 
+def get_snapshot_trending_players(limit=6):
+    snapshot = load_stat_snapshot()
+    trending_players = snapshot.get("trending_players") or []
+
+    if not trending_players:
+        trending_players = sorted(
+            snapshot.get("players", {}).values(),
+            key=lambda player: player.get("ppg", 0),
+            reverse=True,
+        )[:limit]
+
+    return [
+        {
+            "id": player.get("id"),
+            "name": player.get("name"),
+            "team": player.get("team_abbr") or player.get("team", "NBA"),
+            "ppg": player.get("ppg", 0),
+            "rpg": player.get("rpg", 0),
+            "apg": player.get("apg", 0),
+            "image_url": add_player_identity_defaults(player)["image_url"],
+        }
+        for player in trending_players[:limit]
+    ]
+
+
 def add_player_identity_defaults(player):
     player = player.copy()
     team_abbr = safe_text(player.get("team_abbr") or player.get("team"), "NBA")
@@ -1016,28 +1041,7 @@ def get_league_leaders(limit=5):
 @ttl_cache(TRENDING_CACHE_TTL_SECONDS)
 def get_trending_players(season, limit=6):
     if using_balldontlie():
-        snapshot = load_stat_snapshot()
-        trending_players = snapshot.get("trending_players") or []
-
-        if not trending_players:
-            trending_players = sorted(
-                get_snapshot_players().values(),
-                key=lambda player: player.get("ppg", 0),
-                reverse=True,
-            )[:limit]
-
-        return [
-            {
-                "id": player.get("id"),
-                "name": player.get("name"),
-                "team": player.get("team_abbr") or player.get("team", "NBA"),
-                "ppg": player.get("ppg", 0),
-                "rpg": player.get("rpg", 0),
-                "apg": player.get("apg", 0),
-                "image_url": add_player_identity_defaults(player)["image_url"],
-            }
-            for player in trending_players[:limit]
-        ]
+        return get_snapshot_trending_players(limit)
 
     recent_stats = leaguedashplayerstats.LeagueDashPlayerStats(
         last_n_games=5,
@@ -1197,7 +1201,10 @@ def home():
     trending_error = None
 
     season = get_current_nba_season()
-    trending_players = get_cached_function_value(get_trending_players, season)
+    if using_balldontlie():
+        trending_players = get_snapshot_trending_players()
+    else:
+        trending_players = get_cached_function_value(get_trending_players, season)
 
     if get_cached_data_notice():
         trending_error = get_cached_data_notice()
